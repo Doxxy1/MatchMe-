@@ -1,14 +1,17 @@
-// Imports
+// Imports Modules
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const {buildSchema} = require('graphql');
+const mongoose = require('mongoose');
+
+//Import Models
+const JobSeeker = require('./model/jobSeeker');
+const Job = require('./model/job');
+const Employer = require('./model/employer');
 
 //Globals
 const app = express();
-const PORT = process.env.PORT || 3000
-
-// In-memory dummy data
-const users = [{ _id: "1", firstName: "Mohamad", lastName: "Geeleh"}, { _id: "2", firstName: "John", lastName: "Doe"}];
+const PORT = process.env.PORT || 3000;
 
 
 // Construct a schema, using GraphQL schema language
@@ -16,22 +19,51 @@ const users = [{ _id: "1", firstName: "Mohamad", lastName: "Geeleh"}, { _id: "2"
 //MongoDB uses _ for id
 //GraphQL has ID type (unique)
 const schema = buildSchema(`
-  type User {
+  type JobSeeker {
     _id: ID!
-    firstName: String!
-    lastName: String!
+    name: String!
+    phone: String!
+    email: String!
+    description: String!
   }
   
-  input UserInput {
-    firstName: String!
-    lastName: String!
+  type Job {
+    _id: ID!
+    name: String!
+  }
+  
+  type Employer {
+    _id: ID!
+    name: String!
+    phone: String!
+    email: String!
+  }
+  
+  input JobSeekerInput {
+    name: String!
+    phone: String!
+    email: String!
+    description: String!
+  }
+  
+  input JobInput {
+    name: String!
+  }
+  
+  input EmployerInput{
+    name: String!
+    phone: String!
+    email: String!
   }
   
   type Query {
-    users: [User!]!
+    jobSeekers: [JobSeeker!]!
+    job: [Job!]!
   }
   type Mutation {
-    createUser(userInput: UserInput): User
+    createJobSeeker(jobSeekerInput: JobSeekerInput): JobSeeker
+    createJob(jobInput: JobInput): Job
+    createEmployer(employerInput: EmployerInput): Employer
   }
   
   schema {
@@ -42,18 +74,69 @@ const schema = buildSchema(`
 
 // The root provides a resolver function for each API endpoint
 const root = {
-    users: () => {
-        return users;
+    jobSeekers: () => {
+        return JobSeeker.find().then(jobSeekers => {
+            return jobSeekers.map(jobSeeker => {
+                return { ...jobSeeker._doc, _id: jobSeeker._doc._id.toString()};
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
     },
-    createUser: (args) => {
-        const user = {
-            _id: Math.random().toString(),
-            firstName: args.userInput.firstName,
-            lastName: args.userInput.lastName,
-
-        }
-        users.push(user);
-        return user;
+    job: () => {
+        return Job.find().then(job => {
+            return job.map(job => {
+                return { ...job._doc, _id: job._doc._id.toString()};
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    createJobSeeker: (args) => {
+        const jobSeeker = new JobSeeker({
+                name: args.jobSeekerInput.name,
+                phone: args.jobSeekerInput.phone,
+                email: args.jobSeekerInput.email,
+                description: args.jobSeekerInput.description
+            }
+        );
+        return jobSeeker.save().then(result => {
+            console.log(result);
+            return {...result._doc};
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    createJob: (args) => {
+        const job = new Job({
+                name: args.jobInput.name
+            }
+        );
+        return job.save().then(result => {
+            console.log(result);
+            return {...result._doc};
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    createEmployer: (args) => {
+        const employer = new Employer({
+                name: args.employerInput.name,
+                phone: args.employerInput.phone,
+                email: args.employerInput.email
+            }
+        );
+        return employer.save().then(result => {
+            console.log(result);
+            return {...result._doc};
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
     }
 };
 
@@ -64,5 +147,16 @@ app.use('/graphql', graphqlHTTP({
     graphiql: true,
 }));
 
-//Port listen
-app.listen(PORT);
+//Database connection check via mongoose and port
+//Async promise
+mongoose
+    .connect(
+        `mongodb+srv://matchme:S1eDmHKdzWnGLR02@matchmemongo-f5qtv.mongodb.net/matchmedb?retryWrites=true&w=majority`, { useNewUrlParser: true })
+    .then(() => {
+        app.listen(PORT);
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+
