@@ -18,14 +18,8 @@ const employerSchema = new Schema({
         type: String,
         required: true
 
-    },
+    }
 
-    jobsListed: [
-        {
-            type: Schema.Types.ObjectID,
-            ref: 'Job'
-        }
-    ]
 
 });
 

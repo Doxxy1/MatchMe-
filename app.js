@@ -30,6 +30,7 @@ const schema = buildSchema(`
   type Job {
     _id: ID!
     name: String!
+    ownerId: ID!
   }
   
   type Employer {
@@ -48,6 +49,7 @@ const schema = buildSchema(`
   
   input JobInput {
     name: String!
+    ownerId: ID!
   }
   
   input EmployerInput{
@@ -58,7 +60,8 @@ const schema = buildSchema(`
   
   type Query {
     jobSeekers: [JobSeeker!]!
-    job: [Job!]!
+    jobs: [Job!]!
+    employers: [Employer!]!
   }
   type Mutation {
     createJobSeeker(jobSeekerInput: JobSeekerInput): JobSeeker
@@ -84,10 +87,20 @@ const root = {
             throw err;
         });
     },
-    job: () => {
-        return Job.find().then(job => {
-            return job.map(job => {
-                return { ...job._doc, _id: job._doc._id.toString()};
+    jobs: () => {
+        return Job.find().then(jobs => {
+            return jobs.map(jobs => {
+                return { ...jobs._doc, _id: jobs._doc._id.toString()};
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    employers: () => {
+        return Employer.find().then(employers => {
+            return employers.map(employers => {
+                return { ...employers._doc, _id: employers._doc._id.toString()};
             });
         }).catch(err => {
             console.log(err);
@@ -112,7 +125,8 @@ const root = {
     },
     createJob: (args) => {
         const job = new Job({
-                name: args.jobInput.name
+                name: args.jobInput.name,
+                ownerId: '5d500bbf42c0085648fb06fe'
             }
         );
         return job.save().then(result => {
