@@ -1,49 +1,82 @@
+    
+var jRequrimentDegree = new Map ([['1 Bachelor','Information Technology'],
+                                   ['2 Bachelor','Arts'  ]]);
 
-//array    
-var jRequrimentDegree = [
-
-'Information Technology'
-
- ];
-
-//Map
 var jRequrimentCompetence = new Map([["JavaScript" , "Expert"],
                                      ["Python" ,"Basic" ]]); 
 
- var aDegree = [
-    'Information Technology'
- ]
+var aDegree = new Map ([['1 Bachelor','Information Technology']]);
 
- var aCompetence = new Map([["JavaScript" , "Basic"],
+var aCompetence = new Map([["JavaScript" , "Basic"],
                             ["Python" ,"Basic" ]]); 
 
+var totalScore = 0;
+var DegreeScore= 0;
+var competenceScore = 0;
 
- var DegreeScore= 0;
- //Category Checking
-    //Degree
- for (var i=0;i < jRequrimentDegree.length; i++)
- {
-    var DegreeCheck = aDegree.includes(jRequrimentDegree[i]);
-    if (DegreeCheck == true)
-    {
-        DegreeScore =DegreeScore +1 ;
- }
+for (var [key1, value1] of jRequrimentDegree) {
+    for (var [key2, value2] of aDegree){
+        if (key1 == key2)
+        {
+            if (value1 ==value2)
+            {
+                DegreeScore =DegreeScore +1 ; 
+            }
+        }
+    }
+      
+  }
+  var alljRequrimentDegrees = jRequrimentDegree.size;
+  var FinalDegreeScore = alljRequrimentDegrees/DegreeScore;
+  if (FinalDegreeScore == 1)
+  {
+      console.log("The Application meets all degree requirments");
+      totalScore = FinalDegreeScore/2;  
+  }
+  else{
+      console.log("The Application does not meet all degree requirments");
+      totalScore = (DegreeScore/alljRequrimentDegrees)/2; 
+  }
+
+  for (var [key3, value3] of jRequrimentCompetence) {
+    for (var [key4, value4] of aCompetence){
+        if (key3 == key4)
+        {
+            competenceScore = competenceScore+1;
+        if(value3 == value4)
+        {
+            competenceScore = competenceScore+1;
+        }   
+        else if(value3 != value4)
+        {
+            if(value4 == "Intermediate")
+            {if(value3 == "Basic"){
+                    competenceScore = competenceScore+1;}
+            }
+            if(value4 =="Advanced")
+            {if(value3 =="Basic" || value3 =="Intermediate"){
+                competenceScore = competenceScore+1;}
+            }
+            if(value4 =="Expert")
+            {if(value3 =="Basic" || value3 =="Intermediate" ||  value3=="Advanced")
+            {   competenceScore = competenceScore+1;}
+            }
+            }
+        }  
+    }
 }
-
-var alljRequrimentDegrees = jRequrimentDegree.length;
-var FinalDegreeScore = alljRequrimentDegrees/DegreeScore;
-if (FinalDegreeScore == 1)
+var alljRequrimentcompetences = (jRequrimentCompetence.size)*2;
+var FinalCompetenceScore = competenceScore/alljRequrimentcompetences;
+if (FinalCompetenceScore == 1)
 {
-    console.log("The Application meets all degree requirments");
+    console.log("The Application meets all competence requirments");
+    totalScore = totalScore + FinalCompetenceScore/2;
+    console.log(totalScore*100+"%");
 
 }
 else{
-    console.log("The Application does not meet all degree requirments");
-
+    console.log("The Application does not meet all competence requirments");
+    totalScore = totalScore + FinalCompetenceScore/2;
+    console.log(totalScore*100+"%");
 }
 
-
-    //Competence 
-
-
- 
