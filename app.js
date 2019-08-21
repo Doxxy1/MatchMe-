@@ -4,69 +4,65 @@ const graphqlHTTP = require('express-graphql');
 const {buildSchema} = require('graphql');
 const mongoose = require('mongoose');
 
+
 //Import Models
-const JobSeeker = require('./model/jobSeeker');
+const User = require('./model/user');
 const Job = require('./model/job');
-const Employer = require('./model/employer');
+const Company = require('./model/company');
+
+//Import Algorithm
+const algorithm = require('./algorithm.js');
 
 //Globals
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 // Construct a schema, using GraphQL schema language
 //! makes a field non-nullable
 //MongoDB uses _ for id
 //GraphQL has ID type (unique)
 const schema = buildSchema(`
-  type JobSeeker {
+  type User {
     _id: ID!
-    name: String!
-    phone: String!
     email: String!
-    description: String!
+    company: Company!
   }
   
   type Job {
     _id: ID!
     name: String!
-    ownerId: ID!
   }
   
-  type Employer {
+  type Company {
     _id: ID!
     name: String!
     phone: String!
     email: String!
   }
   
-  input JobSeekerInput {
-    name: String!
-    phone: String!
+  input UserInput {
     email: String!
-    description: String!
   }
   
   input JobInput {
     name: String!
-    ownerId: ID!
   }
   
-  input EmployerInput{
+  input CompanyInput{
     name: String!
     phone: String!
     email: String!
   }
   
   type Query {
-    jobSeekers: [JobSeeker!]!
+    users: [User!]!
     jobs: [Job!]!
-    employers: [Employer!]!
+    companies: [Company!]!
   }
   type Mutation {
-    createJobSeeker(jobSeekerInput: JobSeekerInput): JobSeeker
+    createUser(userInput: UserInput): User
     createJob(jobInput: JobInput): Job
-    createEmployer(employerInput: EmployerInput): Employer
+    createCompany(companyInput: CompanyInput): Company
   }
   
   schema {
@@ -75,12 +71,29 @@ const schema = buildSchema(`
     }
 `);
 
+// Special Function
+
+const getCompany =  companyId => {
+    return Company.findById(companyId)
+        .then( company => {
+            return { ...company._doc, _id: company.id};
+        })
+        .catch(err => {
+            console.log(err);
+            throw err;
+        });
+    };
+
 // The root provides a resolver function for each API endpoint
 const root = {
-    jobSeekers: () => {
-        return JobSeeker.find().then(jobSeekers => {
-            return jobSeekers.map(jobSeeker => {
-                return { ...jobSeeker._doc, _id: jobSeeker._doc._id.toString()};
+    users: () => {
+        return User.find().then(users => {
+            return users.map(users => {
+                return {
+                    ...users._doc,
+                    _id: users._doc._id.toString(),
+                    company: getCompany.bind(this, users._doc.company)
+                };
             });
         }).catch(err => {
             console.log(err);
@@ -97,25 +110,23 @@ const root = {
             throw err;
         });
     },
-    employers: () => {
-        return Employer.find().then(employers => {
-            return employers.map(employers => {
-                return { ...employers._doc, _id: employers._doc._id.toString()};
+    companies: () => {
+        return Company.find().then(companies => {
+            return companies.map(companies => {
+                return { ...companies._doc, _id: companies._doc._id.toString(), name: "fake name"};
             });
         }).catch(err => {
             console.log(err);
             throw err;
         });
     },
-    createJobSeeker: (args) => {
-        const jobSeeker = new JobSeeker({
-                name: args.jobSeekerInput.name,
-                phone: args.jobSeekerInput.phone,
-                email: args.jobSeekerInput.email,
-                description: args.jobSeekerInput.description
+    createUser: (args) => {
+        const user = new User({
+                email: args.userInput.email,
+                company: '5d5d1ce7641d92178409aefd'
             }
         );
-        return jobSeeker.save().then(result => {
+        return user.save().then(result => {
             console.log(result);
             return {...result._doc};
         }).catch(err => {
@@ -126,7 +137,6 @@ const root = {
     createJob: (args) => {
         const job = new Job({
                 name: args.jobInput.name,
-                ownerId: '5d500bbf42c0085648fb06fe'
             }
         );
         return job.save().then(result => {
@@ -137,14 +147,14 @@ const root = {
             throw err;
         });
     },
-    createEmployer: (args) => {
-        const employer = new Employer({
-                name: args.employerInput.name,
-                phone: args.employerInput.phone,
-                email: args.employerInput.email
+    createCompany: (args) => {
+        const company = new Company({
+                name: args.companyInput.name,
+                phone: args.companyInput.phone,
+                email: args.companyInput.email
             }
         );
-        return employer.save().then(result => {
+        return  company.save().then(result => {
             console.log(result);
             return {...result._doc};
         }).catch(err => {
@@ -153,6 +163,9 @@ const root = {
         });
     }
 };
+
+//Add cors
+app.use(cors());
 
 //Graphql Endpoint
 app.use('/graphql', graphqlHTTP({

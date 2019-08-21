@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const jobSeekerSchema = new Schema({
+const companySchema = new Schema({
     name: {
         type: String,
         required: true
@@ -18,13 +18,9 @@ const jobSeekerSchema = new Schema({
         type: String,
         required: true
 
-    },
-    description: {
-        type: String,
-        required: true
-
     }
+
 
 });
 
-module.exports = mongoose.model('JobSeeker', jobSeekerSchema);
+module.exports = mongoose.model('Company', companySchema);

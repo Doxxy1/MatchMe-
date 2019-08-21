@@ -7,10 +7,6 @@ const jobSchema = new Schema({
         type: String,
         required: true
 
-    },
-    ownerId: {
-        type: Schema.Types.ObjectID,
-        ref: 'Employer'
     }
 
 
