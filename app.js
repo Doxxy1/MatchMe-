@@ -163,8 +163,7 @@ const root = {
         });
     }
 };
-
-//Add cors
+//Fixes authentication
 app.use(cors());
 
 //Graphql Endpoint
