@@ -77,6 +77,11 @@ const schema = buildSchema(`
     email: String!
   }
   
+  input EducationInput {
+    level: String!
+    field: String!
+  }
+  
   type Query {
     users: [User!]!
     jobs: [Job!]!
@@ -86,6 +91,7 @@ const schema = buildSchema(`
     createUser(userInput: UserInput): User
     createJob(jobInput: JobInput): Job
     createCompany(companyInput: CompanyInput): Company
+    createEducation(educationInput: EducationInput): Education
   }
   
   schema {
@@ -96,10 +102,12 @@ const schema = buildSchema(`
 
 // Special Functions
 //$in matches ids
+
 const getEducationList =  educationIds => {
-    return Education.find({ _id: { $in: educationIds } })
-        .then( educationList => {
-            return educationList.map(education => {
+    console.log(educationIds);
+    return Education.find({_id: { $in: educationIds } })
+        .then( educations => {
+            return educations.map(education => {
                 return{
                     ...education._doc,
                     _id: education.id
@@ -119,8 +127,11 @@ const getJobSeeker =  jobSeekerId => {
                 ...jobSeeker._doc,
                 _id: jobSeeker.id,
                 education: getEducationList.bind(this, jobSeeker._doc.education)
+
             };
-        })
+
+        }
+        )
         .catch(err => {
             console.log(err);
             throw err;
@@ -212,6 +223,20 @@ const root = {
             }
         );
         return  company.save().then(result => {
+            console.log(result);
+            return {...result._doc};
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    createEducation: (args) => {
+        const education = new Education({
+                level: args.educationInput.level,
+                field: args.educationInput.field
+            }
+        );
+        return  education.save().then(result => {
             console.log(result);
             return {...result._doc};
         }).catch(err => {
