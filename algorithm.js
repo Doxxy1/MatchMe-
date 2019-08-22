@@ -29,6 +29,14 @@ const match = function(jRequrimentDegree, aDegree) {
 module.exports = {
     match: match,
 }
+
+// User adds education -> Check the edu table-> If exists fetch id if empty create new and save id
+
+// var jRequrimentDegree = new Map ([1 , ['Bachelor','Information Technology'], ['2 Bachelor','Arts'  ]]);
+
+// value[0]  -> Edu Level
+// value[1] -> Edu Field
+
 //Competence functionality will come second
 /*
 for (var [key3, value3] of jRequrimentCompetence) {

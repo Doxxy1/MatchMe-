@@ -10,7 +10,12 @@ const userSchema = new Schema({
     company: {
         type: Schema.Types.ObjectID,
         ref: 'Company'
+    },
+    jobSeeker: {
+        type: Schema.Types.ObjectID,
+        ref: 'JobSeeker'
     }
+
 
 });
 

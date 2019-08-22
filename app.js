@@ -3,15 +3,18 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const {buildSchema} = require('graphql');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 
 //Import Models
 const User = require('./model/user');
 const Job = require('./model/job');
 const Company = require('./model/company');
+const JobSeeker = require('./model/jobSeeker');
 
 //Import Algorithm
 const algorithm = require('./algorithm.js');
+
 
 //Globals
 const app = express();
@@ -25,7 +28,14 @@ const schema = buildSchema(`
   type User {
     _id: ID!
     email: String!
-    company: Company!
+    company: Company
+    jobSeeker: JobSeeker
+  }
+  
+  type JobSeeker {
+    _id: ID!
+    name: String!
+    phone: String!
   }
   
   type Job {
@@ -39,6 +49,12 @@ const schema = buildSchema(`
     phone: String!
     email: String!
   }
+  
+  input JobSeekerInput {
+    name: String!
+    phone: String!
+  }
+  
   
   input UserInput {
     email: String!
@@ -72,6 +88,16 @@ const schema = buildSchema(`
 `);
 
 // Special Function
+const getJobSeeker =  jobSeekerId => {
+    return JobSeeker.findById(jobSeekerId)
+        .then( jobSeeker => {
+            return { ...jobSeeker._doc, _id: jobSeeker.id};
+        })
+        .catch(err => {
+            console.log(err);
+            throw err;
+        });
+};
 
 const getCompany =  companyId => {
     return Company.findById(companyId)
@@ -92,7 +118,8 @@ const root = {
                 return {
                     ...users._doc,
                     _id: users._doc._id.toString(),
-                    company: getCompany.bind(this, users._doc.company)
+                    company: getCompany.bind(this, users._doc.company),
+                    jobSeeker: getJobSeeker.bind(this, users._doc.jobSeeker)
                 };
             });
         }).catch(err => {
@@ -113,7 +140,7 @@ const root = {
     companies: () => {
         return Company.find().then(companies => {
             return companies.map(companies => {
-                return { ...companies._doc, _id: companies._doc._id.toString(), name: "fake name"};
+                return { ...companies._doc, _id: companies._doc._id.toString()};
             });
         }).catch(err => {
             console.log(err);
@@ -122,8 +149,10 @@ const root = {
     },
     createUser: (args) => {
         const user = new User({
-                email: args.userInput.email,
-                company: '5d5d1ce7641d92178409aefd'
+            email: args.userInput.email,
+            company: '5d5d1ce7641d92178409aefd',
+            jobSeeker: '5d5e16f13c89f0f4489cf499'
+
             }
         );
         return user.save().then(result => {
