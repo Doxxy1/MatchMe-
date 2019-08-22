@@ -13,7 +13,16 @@ const jobSeekerSchema = new Schema({
         type: String,
         required: true
 
-    }
+    },
+
+    education: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Education'
+        }
+        ]
+
+
 
 });
 

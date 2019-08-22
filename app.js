@@ -11,6 +11,7 @@ const User = require('./model/user');
 const Job = require('./model/job');
 const Company = require('./model/company');
 const JobSeeker = require('./model/jobSeeker');
+const Education = require('./model/education');
 
 //Import Algorithm
 const algorithm = require('./algorithm.js');
@@ -36,6 +37,7 @@ const schema = buildSchema(`
     _id: ID!
     name: String!
     phone: String!
+    education: [Education!]
   }
   
   type Job {
@@ -50,11 +52,16 @@ const schema = buildSchema(`
     email: String!
   }
   
+  type Education {
+    _id: ID!
+    level: String!
+    field: String!
+  }
+  
   input JobSeekerInput {
     name: String!
     phone: String!
   }
-  
   
   input UserInput {
     email: String!
@@ -87,11 +94,32 @@ const schema = buildSchema(`
     }
 `);
 
-// Special Function
+// Special Functions
+//$in matches ids
+const getEducationList =  educationIds => {
+    return Education.find({ _id: { $in: educationIds } })
+        .then( educationList => {
+            return educationList.map(education => {
+                return{
+                    ...education._doc,
+                    _id: education.id
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            throw err;
+        });
+};
+
 const getJobSeeker =  jobSeekerId => {
     return JobSeeker.findById(jobSeekerId)
         .then( jobSeeker => {
-            return { ...jobSeeker._doc, _id: jobSeeker.id};
+            return {
+                ...jobSeeker._doc,
+                _id: jobSeeker.id,
+                education: getEducationList.bind(this, jobSeeker._doc.education)
+            };
         })
         .catch(err => {
             console.log(err);
