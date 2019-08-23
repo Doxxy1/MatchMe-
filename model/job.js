@@ -7,7 +7,18 @@ const jobSchema = new Schema({
         type: String,
         required: true
 
-    }
+    },
+    company: {
+        type: Schema.Types.ObjectID,
+        ref: 'Company'
+    },
+
+    education: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Education'
+        }
+    ]
 
 
 });

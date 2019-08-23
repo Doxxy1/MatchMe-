@@ -43,6 +43,8 @@ const schema = buildSchema(`
   type Job {
     _id: ID!
     name: String!
+    company: Company
+    education: [Education!]
   }
   
   type Company {
@@ -56,6 +58,11 @@ const schema = buildSchema(`
     _id: ID!
     level: String!
     field: String!
+  }
+  
+  type JobSeekerMatch {
+    score: Float!
+    job: Job!
   }
   
   input JobSeekerInput {
@@ -86,6 +93,7 @@ const schema = buildSchema(`
     users: [User!]!
     jobs: [Job!]!
     companies: [Company!]!
+    jobSeekerMatch(id: String!): [JobSeekerMatch]
   }
   type Mutation {
     createUser(userInput: UserInput): User
@@ -151,6 +159,63 @@ const getCompany =  companyId => {
 
 // The root provides a resolver function for each API endpoint
 const root = {
+    jobSeekerMatch: async (args) => {
+        const jobSeekerEducation = [];
+        const matches = []
+
+        try {
+            const user = await User.findById(args.id);
+            const jobSeeker = await JobSeeker.findById(user.jobSeeker);
+
+            for (var i=0;i < jobSeeker.education.length; i++)
+            {
+                const newEducation = await Education.findById(jobSeeker.education[i]);
+                jobSeekerEducation.push({level: newEducation.level, field: newEducation.field});
+            }
+        } catch (err) {
+            throw err;
+        }
+
+        try {
+            const jobs = await Job.find({});
+            const jobEducation = [];
+
+            for (var i=0;i < jobs.length; i++)
+            {
+                var currentJob = jobs[i];
+
+                const newCompany = await Company.findById(currentJob.company);
+                const currentCompany = {id: newCompany._id, name: newCompany.name, phone: newCompany.phone, email: newCompany.email};
+
+                for (var j=0;j < currentJob.education.length; j++){
+                    const newEducation = await Education.findById(currentJob.education[j]);
+                    jobEducation.push({_id: newEducation._id, level: newEducation.level, field: newEducation.field});
+                }
+
+                var match = algorithm.match(jobEducation, jobSeekerEducation);
+                matches.push({
+                    score: match,
+                    job: {
+                        _id: currentJob._id,
+                        name: currentJob.name,
+                        company: {
+                            _id: currentCompany.id,
+                            name: currentCompany.name,
+                            phone: currentCompany.phone,
+                            email: currentCompany.email
+
+                        },
+                        education: jobEducation
+                    }
+                });
+            }
+            //console.log(jobEducation);
+
+        } catch (err) {
+            throw err;
+        }
+        return matches;
+    },
     users: () => {
         return User.find().then(users => {
             return users.map(users => {
@@ -169,7 +234,12 @@ const root = {
     jobs: () => {
         return Job.find().then(jobs => {
             return jobs.map(jobs => {
-                return { ...jobs._doc, _id: jobs._doc._id.toString()};
+                return {
+                    ...jobs._doc,
+                    _id: jobs._doc._id.toString(),
+                    company: getCompany.bind(this, jobs._doc.company),
+
+                };
             });
         }).catch(err => {
             console.log(err);
@@ -190,7 +260,7 @@ const root = {
         const user = new User({
             email: args.userInput.email,
             company: '5d5d1ce7641d92178409aefd',
-            jobSeeker: '5d5e16f13c89f0f4489cf499'
+            jobSeeker: null
 
             }
         );

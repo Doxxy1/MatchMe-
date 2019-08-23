@@ -1,28 +1,39 @@
-const match = function(jRequrimentDegree, aDegree) {
+const match = function(jobRequirements, ApplicatesDegree) {
 
-    var totalScore = 0;
-    var DegreeScore = 0;
-//    var competenceScore = 0;
+    var DegreeScore= 0;
 
-    for (var [key1, value1] of jRequrimentDegree) {
-        for (var [key2, value2] of aDegree) {
-            if (key1 == key2) {
-                if (value1 == value2) {
-                    DegreeScore = DegreeScore + 1;
+    for (var i=0;i < jobRequirements.length; i++)
+    {
+
+
+        for(var j=0; j < ApplicatesDegree.length; j++)
+        {
+            if(jobRequirements[i].level == ApplicatesDegree[j].level)
+            {
+                if(jobRequirements[i].field == ApplicatesDegree[j].field)
+                {
+                    DegreeScore =DegreeScore +1 ;
+
                 }
             }
         }
 
     }
-    var alljRequrimentDegrees = jRequrimentDegree.size;
-    var FinalDegreeScore = alljRequrimentDegrees / DegreeScore;
-    if (FinalDegreeScore == 1) {
+
+    var alljRequrimentDegrees = jobRequirements.length;
+    var FinalDegreeScore = alljRequrimentDegrees/DegreeScore;
+    if (FinalDegreeScore == 1)
+    {
         console.log("The Application meets all degree requirments");
-        totalScore = FinalDegreeScore / 2;
-    } else {
-        console.log("The Application does not meet all degree requirments");
-        totalScore = (DegreeScore / alljRequrimentDegrees) / 2;
+        totalScore = FinalDegreeScore;
+
     }
+    else{
+        console.log("The Application does not meet all degree requirments");
+        totalScore = (DegreeScore/alljRequrimentDegrees);
+    }
+
+
     return totalScore;
 }
 
