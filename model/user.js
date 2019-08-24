@@ -16,6 +16,10 @@ const userSchema = new Schema({
     jobSeeker: {
         type: Schema.Types.ObjectID,
         ref: 'JobSeeker'
+    },
+    isCompany: {
+        type: Boolean,
+        required: true
     }
 
 

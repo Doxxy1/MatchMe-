@@ -31,6 +31,7 @@ const schema = buildSchema(`
     email: String!
     company: Company
     jobSeeker: JobSeeker
+    isCompany: Boolean!
   }
   
   type JobSeeker {
@@ -67,6 +68,11 @@ const schema = buildSchema(`
     job: Job!
   }
   
+  type JobMatch {
+    score: Float!
+    user: User!
+  }
+  
   input JobSeekerInput {
     name: String!
     phone: String!
@@ -96,6 +102,7 @@ const schema = buildSchema(`
     jobs: [Job!]!
     companies: [Company!]!
     jobSeekerMatch(id: String!): [JobSeekerMatch]
+    jobMatch(id: String!): [JobMatch]
   }
   type Mutation {
     createUser(userInput: UserInput): User
@@ -172,6 +179,60 @@ const getCompany =  companyId => {
 
 // The root provides a resolver function for each API endpoint
 const root = {
+    jobMatch: async (args) => {
+        const jobEducation = [];
+        const matches = []
+
+        try {
+            const job = await Job.findById(args.id);
+
+            for (var i=0;i < job.education.length; i++)
+            {
+                const newEducation = await Education.findById(job.education[i]);
+                jobEducation.push({level: newEducation.level, field: newEducation.field});
+            }
+        } catch (err) {
+            throw err;
+        }
+
+        try {
+            const users = await User.find({isCompany: false});
+
+
+            for (var i=0;i < users.length; i++)
+            {
+                var currentUser = users[i];
+                var currentJobSeeker = await JobSeeker.findById(currentUser.jobSeeker);
+                const userEducation = [];
+
+                for (var j=0;j < currentJobSeeker.education.length; j++){
+                    const newEducation = await Education.findById(currentJobSeeker.education[j]);
+                    userEducation.push({_id: newEducation._id, level: newEducation.level, field: newEducation.field});
+                }
+
+                var match = algorithm.match(jobEducation, userEducation);
+                matches.push({
+                    score: match,
+                    user: {
+                        _id: currentUser._id,
+                        email: currentUser.email,
+                        company: null,
+                        jobSeeker: {
+                            _id: currentJobSeeker.id,
+                            name: currentJobSeeker.name,
+                            phone: currentJobSeeker.phone,
+                            education: userEducation
+                        },
+                        isCompany: currentUser.isCompany
+                    }
+                });
+            }
+
+        } catch (err) {
+            throw err;
+        }
+        return matches;
+    },
     jobSeekerMatch: async (args) => {
         const jobSeekerEducation = [];
         const matches = []
@@ -191,11 +252,11 @@ const root = {
 
         try {
             const jobs = await Job.find({});
-            const jobEducation = [];
 
             for (var i=0;i < jobs.length; i++)
             {
                 var currentJob = jobs[i];
+                const jobEducation = [];
 
                 const newCompany = await Company.findById(currentJob.company);
                 const currentCompany = {id: newCompany._id, name: newCompany.name, phone: newCompany.phone, email: newCompany.email, logoUrl: newCompany.logoUrl};
@@ -224,7 +285,6 @@ const root = {
                     }
                 });
             }
-            //console.log(jobEducation);
 
         } catch (err) {
             throw err;
