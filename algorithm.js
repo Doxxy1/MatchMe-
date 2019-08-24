@@ -24,12 +24,12 @@ const match = function(jobRequirements, ApplicatesDegree) {
     var FinalDegreeScore = alljRequrimentDegrees/DegreeScore;
     if (FinalDegreeScore == 1)
     {
-        console.log("The Application meets all degree requirments");
+        // console.log("The Application meets all degree requirments");
         totalScore = FinalDegreeScore;
 
     }
     else{
-        console.log("The Application does not meet all degree requirments");
+        // console.log("The Application does not meet all degree requirments");
         totalScore = (DegreeScore/alljRequrimentDegrees);
     }
 
