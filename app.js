@@ -52,6 +52,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     email: String!
+    logoUrl: String
   }
   
   type Education {
@@ -196,7 +197,7 @@ const root = {
                 var currentJob = jobs[i];
 
                 const newCompany = await Company.findById(currentJob.company);
-                const currentCompany = {id: newCompany._id, name: newCompany.name, phone: newCompany.phone, email: newCompany.email};
+                const currentCompany = {id: newCompany._id, name: newCompany.name, phone: newCompany.phone, email: newCompany.email, logoUrl: newCompany.logoUrl};
 
                 for (var j=0;j < currentJob.education.length; j++){
                     const newEducation = await Education.findById(currentJob.education[j]);
@@ -213,7 +214,8 @@ const root = {
                             _id: currentCompany.id,
                             name: currentCompany.name,
                             phone: currentCompany.phone,
-                            email: currentCompany.email
+                            email: currentCompany.email,
+                            logoUrl: currentCompany.logoUrl
 
                         },
                         education: jobEducation

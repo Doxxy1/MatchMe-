@@ -18,6 +18,10 @@ const companySchema = new Schema({
         type: String,
         required: true
 
+    },
+    logoUrl: {
+        type: String
+
     }
 
 
