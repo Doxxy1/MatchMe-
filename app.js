@@ -45,6 +45,7 @@ const schema = buildSchema(`
     name: String!
     company: Company
     education: [Education!]
+    description: String!
   }
   
   type Company {
@@ -218,7 +219,8 @@ const root = {
                             logoUrl: currentCompany.logoUrl
 
                         },
-                        education: jobEducation
+                        education: jobEducation,
+                        description: currentJob.description
                     }
                 });
             }

@@ -18,7 +18,13 @@ const jobSchema = new Schema({
             type : Schema.Types.ObjectID,
             ref: 'Education'
         }
-    ]
+    ],
+
+    description: {
+        type: String,
+        required: true
+
+    }
 
 
 });
