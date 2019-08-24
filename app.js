@@ -112,7 +112,6 @@ const schema = buildSchema(`
 //$in matches ids
 
 const getEducationList =  educationIds => {
-    console.log(educationIds);
     return Education.find({_id: { $in: educationIds } })
         .then( educations => {
             return educations.map(education => {
@@ -129,32 +128,44 @@ const getEducationList =  educationIds => {
 };
 
 const getJobSeeker =  jobSeekerId => {
-    return JobSeeker.findById(jobSeekerId)
-        .then( jobSeeker => {
-            return {
-                ...jobSeeker._doc,
-                _id: jobSeeker.id,
-                education: getEducationList.bind(this, jobSeeker._doc.education)
+    if (jobSeekerId == null){
+        return null;
+    }
+    else{
+        return JobSeeker.findById(jobSeekerId)
+            .then( jobSeeker => {
+                    return {
+                        ...jobSeeker._doc,
+                        _id: jobSeeker.id,
+                        education: getEducationList.bind(this, jobSeeker._doc.education)
 
-            };
+                    };
 
-        }
-        )
-        .catch(err => {
-            console.log(err);
-            throw err;
-        });
+                }
+            )
+            .catch(err => {
+                console.log(err);
+                throw err;
+            });
+    }
+
 };
 
 const getCompany =  companyId => {
-    return Company.findById(companyId)
-        .then( company => {
-            return { ...company._doc, _id: company.id};
-        })
-        .catch(err => {
-            console.log(err);
-            throw err;
-        });
+    if (companyId == null){
+        return null;
+    }
+    else{
+        return Company.findById(companyId)
+            .then( company => {
+                return { ...company._doc, _id: company.id};
+            })
+            .catch(err => {
+                console.log(err);
+                throw err;
+            });
+    }
+
     };
 
 // The root provides a resolver function for each API endpoint
