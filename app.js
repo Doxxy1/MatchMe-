@@ -313,6 +313,7 @@ const root = {
                     ...jobs._doc,
                     _id: jobs._doc._id.toString(),
                     company: getCompany.bind(this, jobs._doc.company),
+                    education: getEducationList.bind(this, jobs._doc.education)
 
                 };
             });
