@@ -178,6 +178,7 @@ const getCompany =  companyId => {
     };
 
 // The root provides a resolver function for each API endpoint
+//Mutation add, queries return
 const root = {
     jobMatch: async (args) => {
         const jobEducation = [];
