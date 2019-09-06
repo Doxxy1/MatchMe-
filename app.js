@@ -19,7 +19,7 @@ const algorithm = require('./algorithm.js');
 
 //Globals
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Construct a schema, using GraphQL schema language
 //! makes a field non-nullable
@@ -76,6 +76,7 @@ const schema = buildSchema(`
   input JobSeekerInput {
     name: String!
     phone: String!
+    education: [EducationInput!]
   }
   
   input UserInput {
@@ -107,8 +108,9 @@ const schema = buildSchema(`
   type Mutation {
     createUser(userInput: UserInput): User
     createJob(jobInput: JobInput): Job
-    createCompany(companyInput: CompanyInput): Company
+    createCompany(companyInput: CompanyInput): User
     createEducation(educationInput: EducationInput): Education
+    createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
   }
   
   schema {
@@ -333,11 +335,11 @@ const root = {
             throw err;
         });
     },
-    createUser: (args) => {
+    createUser: async (args) => {
         const user = new User({
-            email: args.userInput.email,
-            company: '5d5d1ce7641d92178409aefd',
-            jobSeeker: null
+            email: args.email,
+            company: args.company,
+            jobSeeker: args.jobSeeker
 
             }
         );
@@ -362,21 +364,6 @@ const root = {
             throw err;
         });
     },
-    createCompany: (args) => {
-        const company = new Company({
-                name: args.companyInput.name,
-                phone: args.companyInput.phone,
-                email: args.companyInput.email
-            }
-        );
-        return  company.save().then(result => {
-            console.log(result);
-            return {...result._doc};
-        }).catch(err => {
-            console.log(err);
-            throw err;
-        });
-    },
     createEducation: (args) => {
         const education = new Education({
                 level: args.educationInput.level,
@@ -390,6 +377,92 @@ const root = {
             console.log(err);
             throw err;
         });
+    },
+    createJobSeeker: async (args) => {
+        var newjobSeeker = null;
+        const thisEmail = args.userInput.email;
+        try{
+            const user = await User.find({email : thisEmail})
+            console.log("user:"+ user)
+
+            if(user != ""){
+               return null;
+            }
+
+        }catch (err) {
+            throw err;
+        }
+       try {
+           const jobSeeker = new JobSeeker({
+                   name: args.jobSeekerInput.name,
+                   phone: args.jobSeekerInput.phone,
+                   education: args.jobSeekerInput.education
+               }
+           );
+           newjobSeeker = jobSeeker;
+           jobSeeker.save().then(result => {
+               console.log(result);
+           })
+       }
+       catch (err) {
+               throw err;
+           }
+               try {
+                   const user = new User({
+                           email: thisEmail,
+                           company: null,
+                           jobSeeker: newjobSeeker._id,
+                           isCompany: false
+
+                       }
+                   );
+                   return user.save().then(result => {
+                       console.log(result);
+                       return {...result._doc};
+                   }).catch(err => {
+                       console.log(err);
+                       throw err;
+                   });
+               }catch (err) {
+                   throw err;
+               }
+    },
+    createCompany: async (args) => {
+        var newCompany = null;
+        try {
+            const company = new Company({
+                    name: args.companyInput.name,
+                    phone: args.companyInput.phone,
+                    email: args.companyInput.email
+                }
+            );
+            newCompany = company;
+            company.save().then(result => {
+                console.log(result);
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        try {
+            const user = new User({
+                    email: newCompany.email,
+                    company: newCompany._id,
+                    jobSeeker: null,
+                    isCompany: true
+
+                }
+            );
+            return user.save().then(result => {
+                console.log(result);
+                return {...result._doc};
+            }).catch(err => {
+                console.log(err);
+                throw err;
+            });
+        }catch (err) {
+            throw err;
+        }
     }
 };
 //Fixes authentication
