@@ -19,7 +19,7 @@ const algorithm = require('./algorithm.js');
 
 //Globals
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 // Construct a schema, using GraphQL schema language
 //! makes a field non-nullable
