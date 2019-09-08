@@ -26,7 +26,13 @@ const jobSeekerSchema = new Schema({
             type : Schema.Types.ObjectID,
             ref: 'Competence'
         }
-        ]
+        ],
+    completeJobMatch: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Job'
+        }
+    ]
 
 
 
