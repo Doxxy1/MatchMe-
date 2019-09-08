@@ -138,22 +138,21 @@ const getEducationList =  educationIds => {
         });
 };
 
-const getJobSeeker =  jobSeekerId => {
+const getJobSeeker = jobSeekerId => {
     if (jobSeekerId == null){
         return null;
-    }
-    else{
+    } else {
         return JobSeeker.findById(jobSeekerId)
-            .then( jobSeeker => {
-                    return {
-                        ...jobSeeker._doc,
-                        _id: jobSeeker.id,
-                        education: getEducationList.bind(this, jobSeeker._doc.education)
-
-                    };
-
+            .then(jobSeeker => {
+                if (!jobSeeker) {
+                    return null;
                 }
-            )
+                return {
+                    ...jobSeeker._doc,
+                    _id: jobSeeker.id,
+                    education: getEducationList.bind(this, jobSeeker._doc.education)
+                };
+            })
             .catch(err => {
                 console.log(err);
                 throw err;
@@ -162,15 +161,13 @@ const getJobSeeker =  jobSeekerId => {
 
 };
 
-const getCompany =  companyId => {
-    if (companyId == null){
+const getCompany = companyId => {
+    if (!companyId) {
         return null;
-    }
-    else{
+    } else {
         return Company.findById(companyId)
-            .then( company => {
-                return { ...company._doc, _id: company.id};
-            })
+            // Added check to see if company with given ID was found. If not found then return null.
+            .then(company => company ? ({...company._doc, _id: company.id}) : null) 
             .catch(err => {
                 console.log(err);
                 throw err;
@@ -243,11 +240,12 @@ const root = {
         try {
             const user = await User.findById(args.id);
             const jobSeeker = await JobSeeker.findById(user.jobSeeker);
-
-            for (var i=0;i < jobSeeker.education.length; i++)
-            {
-                const newEducation = await Education.findById(jobSeeker.education[i]);
-                jobSeekerEducation.push({level: newEducation.level, field: newEducation.field});
+            if (jobSeeker) {
+                for (var i=0;i < jobSeeker.education.length; i++)
+                {
+                    const newEducation = await Education.findById(jobSeeker.education[i]);
+                    jobSeekerEducation.push({level: newEducation.level, field: newEducation.field});
+                }
             }
         } catch (err) {
             throw err;
