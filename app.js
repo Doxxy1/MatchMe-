@@ -324,7 +324,7 @@ const root = {
                 }
 
                 for (var j=0;j < currentJob.competence.length; j++){
-                    const newCompetence= await Education.findById(currentJob.competence[j]);
+                    const newCompetence= await Competence.findById(currentJob.competence[j]);
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
                 }
 

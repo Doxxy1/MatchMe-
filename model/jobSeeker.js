@@ -20,6 +20,12 @@ const jobSeekerSchema = new Schema({
             type : Schema.Types.ObjectID,
             ref: 'Education'
         }
+        ],
+    competence: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Competence'
+        }
         ]
 
 

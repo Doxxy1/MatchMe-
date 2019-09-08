@@ -19,6 +19,12 @@ const jobSchema = new Schema({
             ref: 'Education'
         }
     ],
+    competence: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Competence'
+        }
+    ],
 
     description: {
         type: String,
