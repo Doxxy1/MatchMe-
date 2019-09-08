@@ -39,6 +39,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     education: [Education!]
+    completeJobMatch: [Job!]
   }
   
   type Job {
@@ -47,6 +48,8 @@ const schema = buildSchema(`
     company: Company
     education: [Education!]
     description: String!
+    jobSeekerInterest: [User!]
+    companyInterest: [User!]
   }
   
   type Company {
@@ -98,6 +101,11 @@ const schema = buildSchema(`
     field: String!
   }
   
+  input AcceptJobInput {
+    userId: String!
+    jobId: String!
+  }
+  
   type Query {
     users: [User!]!
     jobs: [Job!]!
@@ -111,6 +119,7 @@ const schema = buildSchema(`
     createCompany(companyInput: CompanyInput): User
     createEducation(educationInput: EducationInput): Education
     createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
+    acceptJob(acceptJobInput: AcceptJobInput): String
   }
   
   schema {
@@ -184,7 +193,7 @@ const getCompany =  companyId => {
 const root = {
     jobMatch: async (args) => {
         const jobEducation = [];
-        const matches = []
+        const matches = [];
 
         try {
             const job = await Job.findById(args.id);
@@ -382,8 +391,8 @@ const root = {
         var newjobSeeker = null;
         const thisEmail = args.userInput.email;
         try{
-            const user = await User.find({email : thisEmail})
-            console.log("user:"+ user)
+            const user = await User.find({email : thisEmail});
+            console.log("user:"+ user);
 
             if(user != ""){
                 return null;
@@ -463,8 +472,59 @@ const root = {
         }catch (err) {
             throw err;
         }
+    },
+    acceptJob: async (args) => {
+        var currUser = null;
+        var currJobSeeker = null;
+        var currJob = null;
+        try{
+            currUser = await User.findById(args.acceptJobInput.userId);
+            currJobSeeker = await JobSeeker.findById(currUser.jobSeeker);
+            currJob = await Job.findById(args.acceptJobInput.jobId);
+        }
+        catch (err) {
+            throw err;
+        }
+
+        if (currJobSeeker.completeJobMatch.includes(args.acceptJobInput.jobId) === false){
+            if (currJob.jobSeekerInterest.includes(args.acceptJobInput.userId) === false && currJob.companyInterest.includes(args.acceptJobInput.userId) === false){
+                try{
+                    currJob.jobSeekerInterest.push(args.acceptJobInput.userId);
+                    var updatedJob = await Job.findByIdAndUpdate(args.acceptJobInput.jobId, { jobSeekerInterest: currJob.jobSeekerInterest});
+                }
+                catch (err) {
+                    throw err;
+                }
+
+                return "1 Way Match";
+
+            }
+            else if (currJob.companyInterest.includes(args.acceptJobInput.userId)){
+                //Remove from companyInterest
+                for( var i = 0; i < currJob.companyInterest.length; i++){
+                    if ( currJob.companyInterest[i] === args.acceptJobInput.userId) {
+                        currJob.companyInterest.splice(i, 1);
+                    }
+                }
+                currJobSeeker.completeJobMatch.push(args.acceptJobInput.jobId);
+                var updatedJobSeeker = await JobSeeker.findByIdAndUpdate(currJobSeeker.id, { completeJobMatch: currJobSeeker.completeJobMatch});
+
+                return "Complete Match";
+            }
+            else{
+                return "Already 1 Way Match";
+
+            }
+        }
+        else {
+            return "Already Complete Match"
+        }
+
+
+
     }
-};
+}
+
 //Fixes authentication
 app.use(cors());
 
