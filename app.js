@@ -19,7 +19,7 @@ const algorithm = require('./algorithm.js');
 
 //Globals
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Construct a schema, using GraphQL schema language
 //! makes a field non-nullable
@@ -335,9 +335,9 @@ const root = {
     },
     createUser: async (args) => {
         const user = new User({
-                email: args.email,
-                company: args.company,
-                jobSeeker: args.jobSeeker
+            email: args.email,
+            company: args.company,
+            jobSeeker: args.jobSeeker
 
             }
         );
@@ -384,7 +384,7 @@ const root = {
             console.log("user:"+ user)
 
             if(user != ""){
-                return null;
+               return null;
             }
 
         }catch (err) {
