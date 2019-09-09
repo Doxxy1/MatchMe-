@@ -53,6 +53,7 @@ const schema = buildSchema(`
     description: String!
     jobSeekerInterest: [User!]
     companyInterest: [User!]
+    completeJobSeekerMatch: [User!]
   }
   
   type Company {
@@ -114,7 +115,7 @@ const schema = buildSchema(`
     level: String!
   }
   
-  input AcceptJobInput {
+  input AcceptInput {
     userId: String!
     jobId: String!
   }
@@ -134,7 +135,8 @@ const schema = buildSchema(`
     createCompany(companyInput: CompanyInput): Company
     createEducation(educationInput: EducationInput): Education
     createCompetence(competenceInput: CompetenceInput): Competence
-    acceptJob(acceptJobInput: AcceptJobInput): String
+    acceptJob(acceptInput: AcceptInput): String
+    acceptJobSeeker(acceptInput: AcceptInput): String
   }
   
   schema {
@@ -511,19 +513,19 @@ const root = {
         var currJobSeeker = null;
         var currJob = null;
         try{
-            currUser = await User.findById(args.acceptJobInput.userId);
+            currUser = await User.findById(args.acceptInput.userId);
             currJobSeeker = await JobSeeker.findById(currUser.jobSeeker);
-            currJob = await Job.findById(args.acceptJobInput.jobId);
+            currJob = await Job.findById(args.acceptInput.jobId);
         }
         catch (err) {
             throw err;
         }
 
-        if (currJobSeeker.completeJobMatch.includes(args.acceptJobInput.jobId) === false){
-            if (currJob.jobSeekerInterest.includes(args.acceptJobInput.userId) === false && currJob.companyInterest.includes(args.acceptJobInput.userId) === false){
+        if (currJobSeeker.completeJobMatch.includes(args.acceptInput.jobId) === false){
+            if (currJob.jobSeekerInterest.includes(args.acceptInput.userId) === false && currJob.companyInterest.includes(args.acceptInput.userId) === false){
                 try{
-                    currJob.jobSeekerInterest.push(args.acceptJobInput.userId);
-                    var updatedJob = await Job.findByIdAndUpdate(args.acceptJobInput.jobId, { jobSeekerInterest: currJob.jobSeekerInterest});
+                    currJob.jobSeekerInterest.push(args.acceptInput.userId);
+                    var updatedJob = await Job.findByIdAndUpdate(args.acceptInput.jobId, { jobSeekerInterest: currJob.jobSeekerInterest});
                 }
                 catch (err) {
                     throw err;
@@ -532,25 +534,26 @@ const root = {
                 return "1 Way Match";
 
             }
-            else if (currJob.companyInterest.includes(args.acceptJobInput.userId)){
+            else if (currJob.companyInterest.includes(args.acceptInput.userId)){
                 //Remove user id from companyInterest
                 if (currJob.companyInterest.length == 1){
                     currJob.companyInterest = [];
                 }
                 else{
                     for( var i = 0; i < currJob.companyInterest.length; i++){
-                        if ( currJob.companyInterest[i] === args.acceptJobInput.userId) {
+                        if ( currJob.companyInterest[i] === args.acceptInput.userId) {
                             currJob.companyInterest.splice(i, 1);
                         }
                     }
                 }
 
                 //Add job to complete match list
-                currJobSeeker.completeJobMatch.push(args.acceptJobInput.jobId);
+                currJobSeeker.completeJobMatch.push(args.acceptInput.jobId);
+                currJob.completeJobSeekerMatch.push(args.acceptInput.jobId);
 
                 //Update mongo db values
                 try{
-                    var updatedJob = await Job.findByIdAndUpdate(args.acceptJobInput.jobId, { companyInterest: currJob.companyInterest});
+                    var updatedJob = await Job.findByIdAndUpdate(args.acceptInput.jobId, { companyInterest: currJob.companyInterest, completeJobSeekerMatch: currJob.completeJobSeekerMatch});
                     var updatedJobSeeker = await JobSeeker.findByIdAndUpdate(currJobSeeker.id, { completeJobMatch: currJobSeeker.completeJobMatch});
                 }
                 catch (err) {
@@ -571,6 +574,63 @@ const root = {
 
 
 
+    },
+    acceptJobSeeker: async (args) => {
+        var currUser = null;
+        var currJobSeeker = null;
+        var currJob = null;
+        try {
+            currUser = await User.findById(args.acceptInput.userId);
+            currJobSeeker = await JobSeeker.findById(currUser.jobSeeker);
+            currJob = await Job.findById(args.acceptInput.jobId);
+        } catch (err) {
+            throw err;
+        }
+
+        if (currJob.completeJobSeekerMatch.includes(args.acceptInput.userId) === false) {
+            if (currJob.jobSeekerInterest.includes(args.acceptInput.userId) === false && currJob.companyInterest.includes(args.acceptInput.userId) === false) {
+                try {
+                    currJob.companyInterest.push(args.acceptInput.userId);
+                    var updatedJob = await Job.findByIdAndUpdate(args.acceptInput.jobId, {companyInterest: currJob.companyInterest});
+                } catch (err) {
+                    throw err;
+                }
+
+                return "1 Way Match";
+
+            } else if (currJob.jobSeekerInterest.includes(args.acceptInput.userId)) {
+                //Remove user id from companyInterest
+                if (currJob.jobSeekerInterest.length == 1) {
+                    currJob.jobSeekerInterest = [];
+                } else {
+                    for (var i = 0; i < currJob.jobSeekerInterest.length; i++) {
+                        if (currJob.jobSeekerInterest[i] === args.acceptInput.userId) {
+                            currJob.jobSeekerInterest.splice(i, 1);
+                        }
+                    }
+                }
+
+                //Add job to complete match list
+                currJob.completeJobSeekerMatch.push(args.acceptInput.jobId);
+                currJobSeeker.completeJobMatch.push(args.acceptInput.jobId);
+
+                //Update mongo db values
+                try {
+                    var updatedJob = await Job.findByIdAndUpdate(args.acceptInput.jobId, {jobSeekerInterest: currJob.jobSeekerInterest, completeJobSeekerMatch: currJob.completeJobSeekerMatch});
+                    var updatedJobSeeker = await JobSeeker.findByIdAndUpdate(currJobSeeker.id, {completeJobMatch: currJobSeeker.completeJobMatch});
+                } catch (err) {
+                    throw err;
+                }
+
+
+                return "Complete Match";
+            } else {
+                return "Already 1 Way Match";
+
+            }
+        } else {
+            return "Already Complete Match"
+        }
     }
 };
 //Fixes authentication
