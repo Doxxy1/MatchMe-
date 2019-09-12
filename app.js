@@ -128,6 +128,7 @@ const schema = buildSchema(`
     jobSeekerMatch(id: String!): [JobSeekerMatch]
     jobMatch(id: String!): [JobMatch]
     jobSeekerCompleteMatches (id: String!) : [Job]
+    jobCompleteMatches (id: String!) : [Job]
   }
   type Mutation {
     createUser(userInput: UserInput): User
@@ -180,6 +181,23 @@ const getCompetenceList =  competenceIds => {
         });
 };
 
+const getJobSeekerUserList =  userIds => {
+    return User.find({_id: { $in: userIds } })
+        .then( users => {
+            return users.map(user => {
+                return{
+                    ...user._doc,
+                    _id: user._doc.id,
+                    jobSeeker: getJobSeeker.bind(this, user._doc.jobSeeker)
+
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            throw err;
+        });
+};
 
 
 const getJobSeeker =  jobSeekerId => {
@@ -226,6 +244,33 @@ const getCompany =  companyId => {
 // The root provides a resolver function for each API endpoint
 //Mutation add, queries return
 const root = {
+    jobCompleteMatches: async (args) => {
+        var currUser = null;
+        try {
+            currUser = await User.findById(args.id);
+        }
+        catch (err) {
+            throw err;
+        }
+        return Job.find({company: currUser.company, completeJobSeekerMatch: { $exists: true, $ne: [] } }).then(jobs => {
+            return jobs.map(jobs => {
+                return {
+                    ...jobs._doc,
+                    _id: jobs._doc._id.toString(),
+                    company: getCompany.bind(this, jobs._doc.company),
+                    education: getEducationList.bind(this, jobs._doc.education),
+                    competence: getCompetenceList.bind(this, jobs._doc.competence),
+                    completeJobSeekerMatch: getJobSeekerUserList.bind(this, jobs._doc.completeJobSeekerMatch)
+
+                };
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+
+
+    },
     jobSeekerCompleteMatches: async (args) => {
         var currUser = null;
         var currJobSeeker = null;
@@ -549,7 +594,7 @@ const root = {
 
                 //Add job to complete match list
                 currJobSeeker.completeJobMatch.push(args.acceptInput.jobId);
-                currJob.completeJobSeekerMatch.push(args.acceptInput.jobId);
+                currJob.completeJobSeekerMatch.push(args.acceptInput.userId);
 
                 //Update mongo db values
                 try{
@@ -611,7 +656,7 @@ const root = {
                 }
 
                 //Add job to complete match list
-                currJob.completeJobSeekerMatch.push(args.acceptInput.jobId);
+                currJob.completeJobSeekerMatch.push(args.acceptInput.userId);
                 currJobSeeker.completeJobMatch.push(args.acceptInput.jobId);
 
                 //Update mongo db values
