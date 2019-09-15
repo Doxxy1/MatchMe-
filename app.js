@@ -13,7 +13,6 @@ const Company = require('./model/company');
 const JobSeeker = require('./model/jobSeeker');
 const Education = require('./model/education');
 const Competence = require('./model/competence');
-
 //Import Algorithm
 const algorithm = require('./algorithm.js');
 
@@ -41,6 +40,9 @@ const schema = buildSchema(`
     phone: String!
     education: [Education!]
     competence: [Competence!]
+    location: String!
+    typeofwork: Int
+    salary: Int
     completeJobMatch: [Job!]
   }
   
@@ -50,6 +52,9 @@ const schema = buildSchema(`
     company: Company
     education: [Education!]
     competence: [Competence!]
+    location: String!
+    typeofwork: Int
+    salary: Int
     description: String!
     jobSeekerInterest: [User!]
     companyInterest: [User!]
@@ -341,7 +346,11 @@ const root = {
                     userCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
 
-                var match = algorithm.match(jobEducation, userEducation,jobCompetence, userCompetence);
+                var match = algorithm.match(jobEducation, userEducation,
+                                            jobCompetence, userCompetence,
+                                            currentJobSeeker.location, job.location,
+                                            currentJobSeeker.typeofwork, job.typeofwork,
+                                            currentJobSeeker.salary,job.salary);
                 matches.push({
                     score: match,
                     user: {
@@ -353,7 +362,10 @@ const root = {
                             name: currentJobSeeker.name,
                             phone: currentJobSeeker.phone,
                             education: userEducation,
-                            competence: userCompetence
+                            competence: userCompetence,
+                            location: currentJobSeeker.location,
+                            typeofwork: currentJobSeeker.typeofwork,
+                            salary: currentJobSeeker.salary
                         },
                         isCompany: currentUser.isCompany
                     }
@@ -411,7 +423,11 @@ const root = {
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
                 }
 
-                var match = algorithm.match(jobEducation, jobSeekerEducation, jobCompetence, jobSeekerCompetence);
+                var match = algorithm.match(jobEducation, jobSeekerEducation,
+                                             jobCompetence, jobSeekerCompetence,
+                                             currentJob.location, jobSeeker.location,
+                                             currentJob.typeofwork, jobSeeker.typeofwork,
+                                             currentJob.salary,jobSeeker.salary);
                 matches.push({
                     score: match,
                     job: {
@@ -425,6 +441,9 @@ const root = {
                             logoUrl: currentCompany.logoUrl
 
                         },
+                        location: currentJob.location,
+                        typeofwork: currentJob.typeofwork,
+                        salary: currentJob.salary,
                         education: jobEducation,
                         competence: jobCompetence,
                         description: currentJob.description

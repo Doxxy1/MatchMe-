@@ -15,6 +15,7 @@ const jobSeekerSchema = new Schema({
 
     },
 
+
     education: [
         {
             type : Schema.Types.ObjectID,
@@ -27,6 +28,24 @@ const jobSeekerSchema = new Schema({
             ref: 'Competence'
         }
         ],
+
+    location: {
+        type: String,
+        required: true
+
+    },
+
+    typeofwork: {
+        type: Number,
+        required: true
+
+    },
+    Salary: {
+        type: Number,
+        required: true
+
+    },
+         
     completeJobMatch: [
         {
             type : Schema.Types.ObjectID,
