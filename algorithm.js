@@ -4,8 +4,6 @@ const match = function(jobRequirements, ApplicatesDegree,jobComptence, Applicate
 
     for (var i=0;i < jobRequirements.length; i++)
     {
-
-
         for(var j=0; j < ApplicatesDegree.length; j++)
         {
             if(jobRequirements[i].level == ApplicatesDegree[j].level)
