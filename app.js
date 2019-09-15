@@ -306,9 +306,9 @@ const root = {
         const jobEducation = [];
         const jobCompetence = []
         const matches = []
+        const job = await Job.findById(args.id);
 
         try {
-            const job = await Job.findById(args.id);
 
             for (var i=0;i < job.education.length; i++)
             {
@@ -380,12 +380,12 @@ const root = {
     jobSeekerMatch: async (args) => {
         const jobSeekerEducation = [];
         const jobSeekerCompetence = [];
-
+        const user = await User.findById(args.id);
+        const jobSeeker = await JobSeeker.findById(user.jobSeeker);
         const matches = []
 
         try {
-            const user = await User.findById(args.id);
-            const jobSeeker = await JobSeeker.findById(user.jobSeeker);
+            
 
             for (var i=0;i < jobSeeker.education.length; i++)
             {

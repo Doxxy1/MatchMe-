@@ -40,7 +40,7 @@ const jobSeekerSchema = new Schema({
         required: true
 
     },
-    Salary: {
+    salary: {
         type: Number,
         required: true
 
