@@ -30,7 +30,25 @@ const jobSchema = new Schema({
         type: String,
         required: true
 
-    }
+    },
+    jobSeekerInterest: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ],
+    companyInterest: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ],
+    completeJobSeekerMatch: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ]
 
 
 });
