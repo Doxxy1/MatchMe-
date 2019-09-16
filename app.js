@@ -483,7 +483,8 @@ const root = {
                     _id: jobs._doc._id.toString(),
                     company: getCompany.bind(this, jobs._doc.company),
                     education: getEducationList.bind(this, jobs._doc.education),
-                    competence: getCompetenceList.bind(this, jobs._doc.competence)
+                    competence: getCompetenceList.bind(this, jobs._doc.competence),
+                    completeJobSeekerMatch: getJobSeekerUserList.bind(this, jobs._doc.completeJobSeekerMatch)
 
 
                 };
