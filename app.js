@@ -192,7 +192,7 @@ const getJobSeekerUserList =  userIds => {
             return users.map(user => {
                 return{
                     ...user._doc,
-                    _id: user._doc.id,
+                    _id: user._doc._id.toString(),
                     jobSeeker: getJobSeeker.bind(this, user._doc.jobSeeker)
 
                 }
@@ -214,12 +214,9 @@ const getJobSeeker =  jobSeekerId => {
             .then( jobSeeker => {
                     return {
                         ...jobSeeker._doc,
-                        _id: jobSeeker.id,
+                        _id: jobSeeker._doc._id.toString(),
                         education: getEducationList.bind(this, jobSeeker._doc.education),
-                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence),
-                        location: jobSeeker.location,
-                        typeofwork: jobSeeker.typeofwork,
-                        salary: jobSeeker.salary
+                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
 
                     };
 
