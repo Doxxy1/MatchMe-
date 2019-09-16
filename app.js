@@ -74,7 +74,6 @@ const schema = buildSchema(`
     level: String!
     field: String!
   }
-
   type Competence {
     _id: ID!
     skill: String!
@@ -114,7 +113,6 @@ const schema = buildSchema(`
     level: String!
     field: String!
   }
-
   input CompetenceInput {
     skill: String!
     level: String!
@@ -130,10 +128,10 @@ const schema = buildSchema(`
     users: [User!]!
     jobs: [Job!]!
     companies: [Company!]!
-    jobSeekerMatch(jobSeekerUserId: String!): [JobSeekerMatch]
-    jobMatch(jobId: String!): [JobMatch]
-    jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
-    jobCompleteMatches (companyUserId: String!) : [Job]
+    jobSeekerMatch(id: String!): [JobSeekerMatch]
+    jobMatch(id: String!): [JobMatch]
+    jobSeekerCompleteMatches (id: String!) : [Job]
+    jobCompleteMatches (id: String!) : [Job]
   }
   type Mutation {
     createUser(userInput: UserInput): User
@@ -192,7 +190,7 @@ const getJobSeekerUserList =  userIds => {
             return users.map(user => {
                 return{
                     ...user._doc,
-                    _id: user._doc._id.toString(),
+                    _id: user._doc.id,
                     jobSeeker: getJobSeeker.bind(this, user._doc.jobSeeker)
 
                 }
@@ -214,10 +212,9 @@ const getJobSeeker =  jobSeekerId => {
             .then( jobSeeker => {
                     return {
                         ...jobSeeker._doc,
-                        _id: jobSeeker._doc._id.toString(),
+                        _id: jobSeeker.id,
                         education: getEducationList.bind(this, jobSeeker._doc.education),
                         competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
-
                     };
 
                 }
@@ -245,7 +242,7 @@ const getCompany =  companyId => {
             });
     }
 
-    };
+};
 
 // The root provides a resolver function for each API endpoint
 //Mutation add, queries return
@@ -348,10 +345,10 @@ const root = {
                 }
 
                 var match = algorithm.match(jobEducation, userEducation,
-                                            jobCompetence, userCompetence,
-                                            currentJobSeeker.location, job.location,
-                                            currentJobSeeker.typeofwork, job.typeofwork,
-                                            currentJobSeeker.salary,job.salary);
+                    jobCompetence, userCompetence,
+                    currentJobSeeker.location, job.location,
+                    currentJobSeeker.typeofwork, job.typeofwork,
+                    currentJobSeeker.salary,job.salary);
                 matches.push({
                     score: match,
                     user: {
@@ -386,7 +383,7 @@ const root = {
         const matches = []
 
         try {
-            
+
 
             for (var i=0;i < jobSeeker.education.length; i++)
             {
@@ -425,10 +422,10 @@ const root = {
                 }
 
                 var match = algorithm.match(jobEducation, jobSeekerEducation,
-                                             jobCompetence, jobSeekerCompetence,
-                                             currentJob.location, jobSeeker.location,
-                                             currentJob.typeofwork, jobSeeker.typeofwork,
-                                             currentJob.salary,jobSeeker.salary);
+                    jobCompetence, jobSeekerCompetence,
+                    currentJob.location, jobSeeker.location,
+                    currentJob.typeofwork, jobSeeker.typeofwork,
+                    currentJob.salary,jobSeeker.salary);
                 matches.push({
                     score: match,
                     job: {
@@ -480,8 +477,7 @@ const root = {
                     _id: jobs._doc._id.toString(),
                     company: getCompany.bind(this, jobs._doc.company),
                     education: getEducationList.bind(this, jobs._doc.education),
-                    competence: getCompetenceList.bind(this, jobs._doc.competence),
-                    completeJobSeekerMatch: getJobSeekerUserList.bind(this, jobs._doc.completeJobSeekerMatch)
+                    competence: getCompetenceList.bind(this, jobs._doc.competence)
 
 
                 };
@@ -503,9 +499,9 @@ const root = {
     },
     createUser: (args) => {
         const user = new User({
-            email: args.userInput.email,
-            company: '5d5d1ce7641d92178409aefd',
-            jobSeeker: null
+                email: args.userInput.email,
+                company: '5d5d1ce7641d92178409aefd',
+                jobSeeker: null
 
             }
         );
@@ -720,5 +716,3 @@ mongoose
     .catch(err => {
         console.log(err);
     });
-
-
