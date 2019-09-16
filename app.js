@@ -216,7 +216,11 @@ const getJobSeeker =  jobSeekerId => {
                         ...jobSeeker._doc,
                         _id: jobSeeker.id,
                         education: getEducationList.bind(this, jobSeeker._doc.education),
-                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
+                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence),
+                        location: jobSeeker.location,
+                        typeofwork: jobSeeker.typeofwork,
+                        salary: jobSeeker.salary
+
                     };
 
                 }
