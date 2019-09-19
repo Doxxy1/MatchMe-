@@ -19,12 +19,53 @@ const jobSchema = new Schema({
             ref: 'Education'
         }
     ],
+    competence: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'Competence'
+        }
+    ],
+    
+    location: {
+        type: String,
+        required: true
+
+    },
+
+    typeofwork: {
+        type: Number,
+        required: true
+
+    },
+    salary: {
+        type: Number,
+        required: true
+
+    },
 
     description: {
         type: String,
         required: true
 
-    }
+    },
+    jobSeekerInterest: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ],
+    companyInterest: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ],
+    completeJobSeekerMatch: [
+        {
+            type : Schema.Types.ObjectID,
+            ref: 'User'
+        }
+    ]
 
 
 });
