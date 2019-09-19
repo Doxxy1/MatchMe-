@@ -250,7 +250,7 @@ const root = {
     jobCompleteMatches: async (args) => {
         var currUser = null;
         try {
-            currUser = await User.findById(args.id);
+            currUser = await User.findById(args.companyUserId);
         }
         catch (err) {
             throw err;
@@ -278,7 +278,7 @@ const root = {
         var currUser = null;
         var currJobSeeker = null;
         try {
-            currUser = await User.findById(args.id);
+            currUser = await User.findById(args.jobSeekerUserId);
             currJobSeeker = await JobSeeker.findById(currUser.jobSeeker);
         }
         catch (err) {
@@ -304,7 +304,7 @@ const root = {
         const jobEducation = [];
         const jobCompetence = []
         const matches = []
-        const job = await Job.findById(args.id);
+        const job = await Job.findById(args.jobId);
 
         try {
 
@@ -378,7 +378,7 @@ const root = {
     jobSeekerMatch: async (args) => {
         const jobSeekerEducation = [];
         const jobSeekerCompetence = [];
-        const user = await User.findById(args.id);
+        const user = await User.findById(args.jobSeekerUserId);
         const jobSeeker = await JobSeeker.findById(user.jobSeeker);
         const matches = []
 
