@@ -128,10 +128,10 @@ const schema = buildSchema(`
     users: [User!]!
     jobs: [Job!]!
     companies: [Company!]!
-    jobSeekerMatch(id: String!): [JobSeekerMatch]
-    jobMatch(id: String!): [JobMatch]
-    jobSeekerCompleteMatches (id: String!) : [Job]
-    jobCompleteMatches (id: String!) : [Job]
+    jobSeekerMatch(jobSeekerUserId: String!): [JobSeekerMatch]
+    jobMatch(jobId: String!): [JobMatch]
+    jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
+    jobCompleteMatches (companyUserId: String!) : [Job]
   }
   type Mutation {
     createUser(userInput: UserInput): User
