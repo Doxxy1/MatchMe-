@@ -216,15 +216,17 @@ const getJobSeeker =  jobSeekerId => {
     else{
         return JobSeeker.findById(jobSeekerId)
             .then( jobSeeker => {
-                    return {
-                        ...jobSeeker._doc,
-                        _id: jobSeeker.id,
-                        education: getEducationList.bind(this, jobSeeker._doc.education),
-                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
-                    };
-
+                if (!jobSeeker) {
+                    return null;
                 }
-            )
+            
+                return {
+                    ...jobSeeker._doc,
+                    _id: jobSeeker.id,
+                    education: getEducationList.bind(this, jobSeeker._doc.education),
+                    competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
+                }
+            })
             .catch(err => {
                 console.log(err);
                 throw err;
