@@ -93,6 +93,11 @@ const schema = buildSchema(`
   input JobSeekerInput {
     name: String!
     phone: String!
+    education: [ID!]
+    competence: [ID!]
+    location: String!
+    typeofwork: Int
+    salary: Int
   }
   
   input UserInput {
@@ -132,11 +137,12 @@ const schema = buildSchema(`
     jobMatch(jobId: String!): [JobMatch]
     jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
     jobCompleteMatches (companyUserId: String!) : [Job]
+    checkUser(email: String!): [User]
   }
   type Mutation {
-    createUser(userInput: UserInput): User
+    createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
     createJob(jobInput: JobInput): Job
-    createCompany(companyInput: CompanyInput): Company
+    createCompany(companyInput: CompanyInput): User
     createEducation(educationInput: EducationInput): Education
     createCompetence(competenceInput: CompetenceInput): Competence
     acceptJob(acceptInput: AcceptInput): String
@@ -497,21 +503,73 @@ const root = {
             throw err;
         });
     },
-    createUser: (args) => {
-        const user = new User({
-                email: args.userInput.email,
-                company: '5d5d1ce7641d92178409aefd',
-                jobSeeker: null
-
-            }
-        );
-        return user.save().then(result => {
-            console.log(result);
-            return {...result._doc};
+    checkUser: (args) => {
+        return User.find({email : args.email}).then(users => {
+            return users.map(users => {
+                return {
+                    ...users._doc,
+                    _id: users._doc._id.toString(),
+                    company: getCompany.bind(this, users._doc.company),
+                    jobSeeker: getJobSeeker.bind(this, users._doc.jobSeeker)
+                };
+            });
         }).catch(err => {
             console.log(err);
             throw err;
         });
+    },createJobSeeker: async (args) => {
+        var newjobSeeker = null;
+        const thisEmail = args.userInput.email;
+        try{
+            const user = await User.find({email : thisEmail})
+            console.log("user:"+ user)
+
+            if(user != ""){
+                return null;
+            }
+
+        }catch (err) {
+            throw err;
+        }
+        try {
+            const jobSeeker = new JobSeeker({
+                    name: args.jobSeekerInput.name,
+                    phone: args.jobSeekerInput.phone,
+                    education: args.jobSeekerInput.education,
+                    competence: args.jobSeekerInput.competence,
+                    location: args.jobSeekerInput.location,
+                    typeofwork: args.jobSeekerInput.typeofwork,
+                    salary: args.jobSeekerInput.salary,
+                    completeJobMatch: []
+                }
+            );
+            newjobSeeker = jobSeeker;
+            jobSeeker.save().then(result => {
+                console.log(result);
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        try {
+            const user = new User({
+                    email: thisEmail,
+                    company: null,
+                    jobSeeker: newjobSeeker._id,
+                    isCompany: false
+
+                }
+            );
+            return user.save().then(result => {
+                console.log(result);
+                return {...result._doc};
+            }).catch(err => {
+                console.log(err);
+                throw err;
+            });
+        }catch (err) {
+            throw err;
+        }
     },
     createJob: (args) => {
         const job = new Job({
@@ -526,20 +584,53 @@ const root = {
             throw err;
         });
     },
-    createCompany: (args) => {
-        const company = new Company({
-                name: args.companyInput.name,
-                phone: args.companyInput.phone,
-                email: args.companyInput.email
+    createCompany: async (args) => {
+        var newCompany = null;
+        const thisEmail = args.companyInput.email;
+        try{
+            const user = await User.find({email: thisEmail})
+            console.log("user:" + user)
+
+            if (user != "") {
+                return null;
             }
-        );
-        return  company.save().then(result => {
-            console.log(result);
-            return {...result._doc};
-        }).catch(err => {
-            console.log(err);
+        }   catch (err) {
             throw err;
-        });
+        }
+        try {
+            const company = new Company({
+                    name: args.companyInput.name,
+                    phone: args.companyInput.phone,
+                    email: thisEmail
+                }
+            );
+            newCompany = company;
+            company.save().then(result => {
+                console.log(result);
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        try {
+            const user = new User({
+                    email: newCompany.email,
+                    company: newCompany._id,
+                    jobSeeker: null,
+                    isCompany: true
+
+                }
+            );
+            return user.save().then(result => {
+                console.log(result);
+                return {...result._doc};
+            }).catch(err => {
+                console.log(err);
+                throw err;
+            });
+        }catch (err) {
+            throw err;
+        }
     },
     createEducation: (args) => {
         const education = new Education({
