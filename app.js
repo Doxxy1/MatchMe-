@@ -138,6 +138,8 @@ const schema = buildSchema(`
     jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
     jobCompleteMatches (companyUserId: String!) : [Job]
     checkUser(email: String!): [User]
+    competence: [Competence!]!
+    education: [Education!]!
   }
   type Mutation {
     createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
@@ -255,6 +257,32 @@ const getCompany =  companyId => {
 // The root provides a resolver function for each API endpoint
 //Mutation add, queries return
 const root = {
+    competence: () => {
+        return Competence.find().then(competences => {
+            return competences.map(competences => {
+                return {
+                    ...competences._doc,
+                    _id: competences._doc._id.toString(),
+                };
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    education: () => {
+        return Education.find().then(educations => {
+            return educations.map(educations => {
+                return {
+                    ...educations._doc,
+                    _id: educations._doc._id.toString(),
+                };
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
     jobCompleteMatches: async (args) => {
         var currUser = null;
         try {
