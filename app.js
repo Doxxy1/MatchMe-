@@ -29,6 +29,7 @@ const schema = buildSchema(`
   type User {
     _id: ID!
     email: String!
+    password: String!
     company: Company
     jobSeeker: JobSeeker
     isCompany: Boolean!
@@ -43,6 +44,11 @@ const schema = buildSchema(`
     location: String!
     typeofwork: Int
     salary: Int
+    education_p: Float!
+    competence_p: Float!
+    location_p: Float!
+    typeofwork_p: Float!
+    salary_p: Float!
     completeJobMatch: [Job!]
   }
   
@@ -98,10 +104,16 @@ const schema = buildSchema(`
     location: String!
     typeofwork: Int
     salary: Int
+    education_p: Float!
+    competence_p: Float!
+    location_p: Float!
+    typeofwork_p: Float!
+    salary_p: Float!
   }
   
   input UserInput {
-    email: String!
+    email: String
+    password: String!
   }
   
   input JobInput {
@@ -137,14 +149,14 @@ const schema = buildSchema(`
     jobMatch(jobId: String!): [JobMatch]
     jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
     jobCompleteMatches (companyUserId: String!) : [Job]
-    checkUser(email: String!): [User]
+    checkUser(email: String!, password: String!): User
     competence: [Competence!]!
     education: [Education!]!
   }
   type Mutation {
     createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
     createJob(jobInput: JobInput): Job
-    createCompany(companyInput: CompanyInput): User
+    createCompany(companyInput: CompanyInput, userInput: UserInput): User
     createEducation(educationInput: EducationInput): Education
     createCompetence(competenceInput: CompetenceInput): Competence
     acceptJob(acceptInput: AcceptInput): String
@@ -221,7 +233,7 @@ const getJobSeeker =  jobSeekerId => {
                 if (!jobSeeker) {
                     return null;
                 }
-            
+
                 return {
                     ...jobSeeker._doc,
                     _id: jobSeeker.id,
@@ -534,15 +546,13 @@ const root = {
         });
     },
     checkUser: (args) => {
-        return User.find({email : args.email}).then(users => {
-            return users.map(users => {
-                return {
-                    ...users._doc,
-                    _id: users._doc._id.toString(),
-                    company: getCompany.bind(this, users._doc.company),
-                    jobSeeker: getJobSeeker.bind(this, users._doc.jobSeeker)
-                };
-            });
+        return User.findOne({email : args.email ,password : args.password}).then(users => {
+            return {
+                ...users._doc,
+                _id: users._doc._id.toString(),
+                company: getCompany.bind(this, users._doc.company),
+                jobSeeker: getJobSeeker.bind(this, users._doc.jobSeeker)
+            }
         }).catch(err => {
             console.log(err);
             throw err;
@@ -550,6 +560,7 @@ const root = {
     },createJobSeeker: async (args) => {
         var newjobSeeker = null;
         const thisEmail = args.userInput.email;
+        const password = args.userInput.password;
         try{
             const user = await User.find({email : thisEmail})
             console.log("user:"+ user)
@@ -570,6 +581,11 @@ const root = {
                     location: args.jobSeekerInput.location,
                     typeofwork: args.jobSeekerInput.typeofwork,
                     salary: args.jobSeekerInput.salary,
+                    education_p: args.jobSeekerInput.education_p,
+                    competence_p: args.jobSeekerInput.competence_p,
+                    location_p: args.jobSeekerInput.location_p,
+                    typeofwork_p: args.jobSeekerInput.typeofwork_p,
+                    salary_p: args.jobSeekerInput.salary_p,
                     completeJobMatch: []
                 }
             );
@@ -584,6 +600,7 @@ const root = {
         try {
             const user = new User({
                     email: thisEmail,
+                    password: password,
                     company: null,
                     jobSeeker: newjobSeeker._id,
                     isCompany: false
@@ -616,6 +633,7 @@ const root = {
     },
     createCompany: async (args) => {
         var newCompany = null;
+        const password = args.userInput.password;
         const thisEmail = args.companyInput.email;
         try{
             const user = await User.find({email: thisEmail})
@@ -646,6 +664,7 @@ const root = {
             const user = new User({
                     email: newCompany.email,
                     company: newCompany._id,
+                    password: password,
                     jobSeeker: null,
                     isCompany: true
 
