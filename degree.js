@@ -34,7 +34,6 @@ else{
 //half the score as we are doing the wieghting of 50/50
 
 //as we now have 5 fields this will be weighted by 20% per each field
-totalDegreeScore = totalDegreeScore/5;
 return totalDegreeScore;
 }
 

@@ -41,7 +41,6 @@ var FinalComptenceScore = alljRequrimentCompetence/competenceScore;
         console.log("The Application does not meet all skill requirments");
         totalComptenceScore = (competenceScore/alljRequrimentCompetence); 
     }
-    totalComptenceScore = totalComptenceScore /5;
     return totalComptenceScore;
 } 
 module.exports = 

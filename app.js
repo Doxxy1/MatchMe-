@@ -50,11 +50,6 @@ const schema = buildSchema(`
     typeofwork_p: Float!
     salary_p: Float!
     completeJobMatch: [Job!]
-    education_p: Float!
-    competence_p: Float!
-    location_p: Float!
-    typeofwork_p: Float!
-    salary_p: Float!
   }
   
   type Job {
@@ -473,12 +468,16 @@ const root = {
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
                 }
-
                 var match = algorithm.match(jobEducation, jobSeekerEducation,
                     jobCompetence, jobSeekerCompetence,
                     currentJob.location, jobSeeker.location,
                     currentJob.typeofwork, jobSeeker.typeofwork,
-                    currentJob.salary,jobSeeker.salary);
+                    currentJob.salary,jobSeeker.salary,
+                    jobSeeker.education_p,
+                    jobSeeker.competence_p,
+                    jobSeeker.location_p,
+                    jobSeeker.typeofwork_p,
+                    jobSeeker.salary_p);
                 matches.push({
                     score: match,
                     job: {

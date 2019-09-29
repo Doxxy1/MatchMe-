@@ -26,8 +26,7 @@ const workMatch = function(applicatiantypeofwork, jobtypeofwork)
         }
 
     }
- var finalworkscore = workScore/5;
-return finalworkscore;
+return workScore;
 }
 
 module.exports = 

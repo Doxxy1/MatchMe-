@@ -67,20 +67,8 @@ const locationMatch = function(applicatianlocation,joblocation)
         }
 
     });
-    var finallocation = locationScore/5;
 
-
-
-
-
-
-
-
-
-
-
-
-    return finallocation;
+    return locationScore;
 }
 
 

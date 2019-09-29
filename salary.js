@@ -18,8 +18,7 @@ var salaryScore = 0;
         salaryScore = percentage;
     }
 
-    var finalsalaryScore = salaryScore/5;
-    return finalsalaryScore;
+    return salaryScore;
 }
 
 module.exports = 
