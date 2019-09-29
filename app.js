@@ -44,6 +44,11 @@ const schema = buildSchema(`
     typeofwork: Int
     salary: Int
     completeJobMatch: [Job!]
+    education_p: Float!
+    competence_p: Float!
+    location_p: Float!
+    typeofwork_p: Float!
+    salary_p: Float!
   }
   
   type Job {
