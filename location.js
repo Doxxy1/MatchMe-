@@ -2,14 +2,7 @@ const locationMatch = function(applicatianlocation,joblocation)
 {
     var locationScore = 0;
     //Location Score 
-    if(applicatianlocation == joblocation)
-    {
-        locationScore  = locationScore + 1;
-    }
-    var finallocation = locationScore/5;
-
     var distance = require('google-distance-matrix');
- 
     var origins = [joblocation];
     var destinations = [applicatianlocation];
      
@@ -29,14 +22,53 @@ const locationMatch = function(applicatianlocation,joblocation)
                     var destination = distances.destination_addresses[j];
                     if (distances.rows[0].elements[j].status == 'OK') {
                         var distance = distances.rows[i].elements[j].distance.text;
-                        console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
+                      //  console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
+                        if(origin == destination)
+                        {
+                            locationScore  = locationScore + 1;
+                            
+                            console.log("Good match")
+                        }
+                        else if(distance <=20) 
+                        {
+                            console.log("<20")
+
+                            locationScore  = locationScore + 1;
+                        }
+                        else if(distance <=30)
+                        {
+                            console.log("<30")
+
+                            locationScore  = locationScore + .8;
+
+                        }
+                        else if(distance <=50)
+                        {
+                            locationScore  = locationScore + .6;
+
+                        }
+                        else if(distance <=70)
+                        {
+                            locationScore  = locationScore + .4;
+
+                        }
+                        else if(distance >70)
+                        {
+                            locationScore  = locationScore + 0;
+
+                        }
+
                     } else {
                         console.log(destination + ' is not reachable by land from ' + origin);
                     }
                 }
             }
+            
         }
+
     });
+    var finallocation = locationScore/5;
+
 
 
 
