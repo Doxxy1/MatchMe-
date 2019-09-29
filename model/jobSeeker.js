@@ -44,6 +44,34 @@ const jobSeekerSchema = new Schema({
         type: Number,
         required: true
 
+    },education_p:
+        {
+            type : Schema.Types.Decimal128,
+            required: true
+        }
+    ,
+    competence_p:
+        {
+            type : Schema.Types.Decimal128,
+            required: true
+        }
+    ,
+
+    location_p: {
+        type : Schema.Types.Decimal128,
+        required: true
+
+    },
+
+    typeofwork_p: {
+        type : Schema.Types.Decimal128,
+        required: true
+
+    },
+    salary_p: {
+        type : Schema.Types.Decimal128,
+        required: true
+
     },
          
     completeJobMatch: [

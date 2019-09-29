@@ -10,6 +10,11 @@ const userSchema = new Schema({
         unique: true
 
     },
+    password: {
+        type: String,
+        required: true
+
+    },
     company: {
         type: Schema.Types.ObjectID,
         ref: 'Company'
