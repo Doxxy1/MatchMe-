@@ -118,6 +118,13 @@ const schema = buildSchema(`
   
   input JobInput {
     name: String!
+    company: ID!
+    education: [ID!]
+    competence: [ID!]
+    location: String!
+    typeofwork: Int
+    salary: Int
+    description: String!
   }
   
   input CompanyInput{
@@ -625,6 +632,13 @@ const root = {
     createJob: (args) => {
         const job = new Job({
                 name: args.jobInput.name,
+                company: args.jobInput.company,
+                education: args.jobInput.education,
+                competence:  args.jobInput.competence,
+                location:  args.jobInput.location,
+                typeofwork:  args.jobInput.typeofwork,
+                description: args.jobInput.description,
+                salary:  args.jobInput.salary
             }
         );
         return job.save().then(result => {
