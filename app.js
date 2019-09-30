@@ -217,7 +217,7 @@ const getJobSeekerUserList =  userIds => {
             return users.map(user => {
                 return{
                     ...user._doc,
-                    _id: user._doc.id,
+                    _id: user.id,
                     jobSeeker: getJobSeeker.bind(this, user._doc.jobSeeker)
 
                 }
@@ -467,7 +467,7 @@ const root = {
                 const currentCompany = {id: newCompany._id, name: newCompany.name, phone: newCompany.phone, email: newCompany.email, logoUrl: newCompany.logoUrl};
 
                 for (var j=0;j < currentJob.education.length; j++){
-                    const newEducation = await Education.findById(currentJob.education[j]);
+                    const newEducation = await Education.findById(currentJob.education[j])
                     jobEducation.push({_id: newEducation._id, level: newEducation.level, field: newEducation.field});
                 }
 
