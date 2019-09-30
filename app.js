@@ -857,7 +857,6 @@ const root = {
     deleteJob: async (args) => {
         try {
             currJob = await Job.findByIdAndRemove(args.jobId);
-            console.log(currJob);
         }
         catch (err) {
 
