@@ -860,9 +860,15 @@ const root = {
             console.log(currJob);
         }
         catch (err) {
+
+        }
+        if (currJob == null){
             return false;
         }
-        return true;
+        else{
+            return true;
+        }
+
 
     }
 };
