@@ -621,7 +621,10 @@ const root = {
             );
             return user.save().then(result => {
                 console.log(result);
-                return {...result._doc};
+                return {
+                    ...result._doc,
+                    jobSeeker: getJobSeeker.bind(this, result._doc.jobSeeker)
+                };
             }).catch(err => {
                 console.log(err);
                 throw err;
@@ -691,7 +694,10 @@ const root = {
             );
             return user.save().then(result => {
                 console.log(result);
-                return {...result._doc};
+                return {
+                    ...result._doc,
+                    company: getCompany.bind(this, users._doc.company)
+                };
             }).catch(err => {
                 console.log(err);
                 throw err;
