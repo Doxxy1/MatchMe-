@@ -404,7 +404,12 @@ const root = {
                     jobCompetence, userCompetence,
                     currentJobSeeker.location, job.location,
                     currentJobSeeker.typeofwork, job.typeofwork,
-                    currentJobSeeker.salary,job.salary);
+                    currentJobSeeker.salary,job.salary,
+                    currentJobSeeker.education_p,
+                    currentJobSeeker.competence_p,
+                    currentJobSeeker.location_p,
+                    currentJobSeeker.typeofwork_p,
+                    currentJobSeeker.salary_p);
                 matches.push({
                     score: match,
                     user: {
