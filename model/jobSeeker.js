@@ -45,6 +45,35 @@ const jobSeekerSchema = new Schema({
         required: true
 
     },
+    education_p:
+        {
+            type :Number,
+            required: true
+        }
+    ,
+    competence_p:
+        {
+            type : Number,
+            required: true
+        }
+    ,
+
+    location_p: {
+        type : Number,
+        required: true
+
+    },
+
+    typeofwork_p: {
+        type : Number,
+        required: true
+
+    },
+    salary_p: {
+        type :Number,
+        required: true
+
+    },
          
     completeJobMatch: [
         {

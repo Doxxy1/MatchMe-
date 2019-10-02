@@ -29,6 +29,7 @@ const schema = buildSchema(`
   type User {
     _id: ID!
     email: String!
+    password: String!
     company: Company
     jobSeeker: JobSeeker
     isCompany: Boolean!
@@ -43,6 +44,11 @@ const schema = buildSchema(`
     location: String!
     typeofwork: Int
     salary: Int
+    education_p: Float!
+    competence_p: Float!
+    location_p: Float!
+    typeofwork_p: Float!
+    salary_p: Float!
     completeJobMatch: [Job!]
   }
   
@@ -93,14 +99,32 @@ const schema = buildSchema(`
   input JobSeekerInput {
     name: String!
     phone: String!
+    education: [ID!]
+    competence: [ID!]
+    location: String!
+    typeofwork: Int
+    salary: Int
+    education_p: Float!
+    competence_p: Float!
+    location_p: Float!
+    typeofwork_p: Float!
+    salary_p: Float!
   }
   
   input UserInput {
-    email: String!
+    email: String
+    password: String!
   }
   
   input JobInput {
     name: String!
+    company: ID!
+    education: [ID!]
+    competence: [ID!]
+    location: String!
+    typeofwork: Int
+    salary: Int
+    description: String!
   }
   
   input CompanyInput{
@@ -128,19 +152,23 @@ const schema = buildSchema(`
     users: [User!]!
     jobs: [Job!]!
     companies: [Company!]!
-    jobSeekerMatch(id: String!): [JobSeekerMatch]
-    jobMatch(id: String!): [JobMatch]
-    jobSeekerCompleteMatches (id: String!) : [Job]
-    jobCompleteMatches (id: String!) : [Job]
+    jobSeekerMatch(jobSeekerUserId: String!): [JobSeekerMatch]
+    jobMatch(jobId: String!): [JobMatch]
+    jobSeekerCompleteMatches (jobSeekerUserId: String!) : [Job]
+    jobCompleteMatches (companyUserId: String!) : [Job]
+    checkUser(email: String!, password: String!): User
+    competence: [Competence!]!
+    education: [Education!]!
   }
   type Mutation {
-    createUser(userInput: UserInput): User
+    createJobSeeker(jobSeekerInput: JobSeekerInput, userInput: UserInput): User
     createJob(jobInput: JobInput): Job
-    createCompany(companyInput: CompanyInput): Company
+    createCompany(companyInput: CompanyInput, userInput: UserInput): User
     createEducation(educationInput: EducationInput): Education
     createCompetence(competenceInput: CompetenceInput): Competence
     acceptJob(acceptInput: AcceptInput): String
     acceptJobSeeker(acceptInput: AcceptInput): String
+    deleteJob(jobId: String): Boolean
   }
   
   schema {
@@ -190,7 +218,7 @@ const getJobSeekerUserList =  userIds => {
             return users.map(user => {
                 return{
                     ...user._doc,
-                    _id: user._doc.id,
+                    _id: user.id,
                     jobSeeker: getJobSeeker.bind(this, user._doc.jobSeeker)
 
                 }
@@ -210,15 +238,17 @@ const getJobSeeker =  jobSeekerId => {
     else{
         return JobSeeker.findById(jobSeekerId)
             .then( jobSeeker => {
-                    return {
-                        ...jobSeeker._doc,
-                        _id: jobSeeker.id,
-                        education: getEducationList.bind(this, jobSeeker._doc.education),
-                        competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
-                    };
-
+                if (!jobSeeker) {
+                    return null;
                 }
-            )
+
+                return {
+                    ...jobSeeker._doc,
+                    _id: jobSeeker.id,
+                    education: getEducationList.bind(this, jobSeeker._doc.education),
+                    competence: getCompetenceList.bind(this, jobSeeker._doc.competence)
+                }
+            })
             .catch(err => {
                 console.log(err);
                 throw err;
@@ -247,10 +277,36 @@ const getCompany =  companyId => {
 // The root provides a resolver function for each API endpoint
 //Mutation add, queries return
 const root = {
+    competence: () => {
+        return Competence.find().then(competences => {
+            return competences.map(competences => {
+                return {
+                    ...competences._doc,
+                    _id: competences._doc._id.toString(),
+                };
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    education: () => {
+        return Education.find().then(educations => {
+            return educations.map(educations => {
+                return {
+                    ...educations._doc,
+                    _id: educations._doc._id.toString(),
+                };
+            });
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
     jobCompleteMatches: async (args) => {
         var currUser = null;
         try {
-            currUser = await User.findById(args.id);
+            currUser = await User.findById(args.companyUserId);
         }
         catch (err) {
             throw err;
@@ -278,7 +334,7 @@ const root = {
         var currUser = null;
         var currJobSeeker = null;
         try {
-            currUser = await User.findById(args.id);
+            currUser = await User.findById(args.jobSeekerUserId);
             currJobSeeker = await JobSeeker.findById(currUser.jobSeeker);
         }
         catch (err) {
@@ -304,7 +360,7 @@ const root = {
         const jobEducation = [];
         const jobCompetence = []
         const matches = []
-        const job = await Job.findById(args.id);
+        const job = await Job.findById(args.jobId);
 
         try {
 
@@ -378,7 +434,7 @@ const root = {
     jobSeekerMatch: async (args) => {
         const jobSeekerEducation = [];
         const jobSeekerCompetence = [];
-        const user = await User.findById(args.id);
+        const user = await User.findById(args.jobSeekerUserId);
         const jobSeeker = await JobSeeker.findById(user.jobSeeker);
         const matches = []
 
@@ -420,12 +476,16 @@ const root = {
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
                 }
-
                 var match = algorithm.match(jobEducation, jobSeekerEducation,
                     jobCompetence, jobSeekerCompetence,
                     currentJob.location, jobSeeker.location,
                     currentJob.typeofwork, jobSeeker.typeofwork,
-                    currentJob.salary,jobSeeker.salary);
+                    currentJob.salary,jobSeeker.salary,
+                    jobSeeker.education_p,
+                    jobSeeker.competence_p,
+                    jobSeeker.location_p,
+                    jobSeeker.typeofwork_p,
+                    jobSeeker.salary_p);
                 matches.push({
                     score: match,
                     job: {
@@ -497,25 +557,92 @@ const root = {
             throw err;
         });
     },
-    createUser: (args) => {
-        const user = new User({
-                email: args.userInput.email,
-                company: '5d5d1ce7641d92178409aefd',
-                jobSeeker: null
-
+    checkUser: (args) => {
+        return User.findOne({email : args.email ,password : args.password}).then(users => {
+            return {
+                ...users._doc,
+                _id: users._doc._id.toString(),
+                company: getCompany.bind(this, users._doc.company),
+                jobSeeker: getJobSeeker.bind(this, users._doc.jobSeeker)
             }
-        );
-        return user.save().then(result => {
-            console.log(result);
-            return {...result._doc};
         }).catch(err => {
             console.log(err);
             throw err;
         });
+    },createJobSeeker: async (args) => {
+        var newjobSeeker = null;
+        const thisEmail = args.userInput.email;
+        const password = args.userInput.password;
+        try{
+            const user = await User.find({email : thisEmail})
+            console.log("user:"+ user)
+
+            if(user != ""){
+                return null;
+            }
+
+        }catch (err) {
+            throw err;
+        }
+        try {
+            const jobSeeker = new JobSeeker({
+                    name: args.jobSeekerInput.name,
+                    phone: args.jobSeekerInput.phone,
+                    education: args.jobSeekerInput.education,
+                    competence: args.jobSeekerInput.competence,
+                    location: args.jobSeekerInput.location,
+                    typeofwork: args.jobSeekerInput.typeofwork,
+                    salary: args.jobSeekerInput.salary,
+                    education_p: args.jobSeekerInput.education_p,
+                    competence_p: args.jobSeekerInput.competence_p,
+                    location_p: args.jobSeekerInput.location_p,
+                    typeofwork_p: args.jobSeekerInput.typeofwork_p,
+                    salary_p: args.jobSeekerInput.salary_p,
+                    completeJobMatch: []
+                }
+            );
+            newjobSeeker = jobSeeker;
+            jobSeeker.save().then(result => {
+                console.log(result);
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        try {
+            const user = new User({
+                    email: thisEmail,
+                    password: password,
+                    company: null,
+                    jobSeeker: newjobSeeker._id,
+                    isCompany: false
+
+                }
+            );
+            return user.save().then(result => {
+                console.log(result);
+                return {
+                    ...result._doc,
+                    jobSeeker: getJobSeeker.bind(this, result._doc.jobSeeker)
+                };
+            }).catch(err => {
+                console.log(err);
+                throw err;
+            });
+        }catch (err) {
+            throw err;
+        }
     },
     createJob: (args) => {
         const job = new Job({
                 name: args.jobInput.name,
+                company: args.jobInput.company,
+                education: args.jobInput.education,
+                competence:  args.jobInput.competence,
+                location:  args.jobInput.location,
+                typeofwork:  args.jobInput.typeofwork,
+                description: args.jobInput.description,
+                salary:  args.jobInput.salary
             }
         );
         return job.save().then(result => {
@@ -526,20 +653,58 @@ const root = {
             throw err;
         });
     },
-    createCompany: (args) => {
-        const company = new Company({
-                name: args.companyInput.name,
-                phone: args.companyInput.phone,
-                email: args.companyInput.email
+    createCompany: async (args) => {
+        var newCompany = null;
+        const password = args.userInput.password;
+        const thisEmail = args.companyInput.email;
+        try{
+            const user = await User.find({email: thisEmail})
+            console.log("user:" + user)
+
+            if (user != "") {
+                return null;
             }
-        );
-        return  company.save().then(result => {
-            console.log(result);
-            return {...result._doc};
-        }).catch(err => {
-            console.log(err);
+        }   catch (err) {
             throw err;
-        });
+        }
+        try {
+            const company = new Company({
+                    name: args.companyInput.name,
+                    phone: args.companyInput.phone,
+                    email: thisEmail
+                }
+            );
+            newCompany = company;
+            company.save().then(result => {
+                console.log(result);
+            })
+        }
+        catch (err) {
+            throw err;
+        }
+        try {
+            const user = new User({
+                    email: newCompany.email,
+                    company: newCompany._id,
+                    password: password,
+                    jobSeeker: null,
+                    isCompany: true
+
+                }
+            );
+            return user.save().then(result => {
+                console.log(result);
+                return {
+                    ...result._doc,
+                    company: getCompany.bind(this, users._doc.company)
+                };
+            }).catch(err => {
+                console.log(err);
+                throw err;
+            });
+        }catch (err) {
+            throw err;
+        }
     },
     createEducation: (args) => {
         const education = new Education({
@@ -693,6 +858,23 @@ const root = {
         } else {
             return "Already Complete Match"
         }
+
+    },
+    deleteJob: async (args) => {
+        try {
+            currJob = await Job.findByIdAndRemove(args.jobId);
+        }
+        catch (err) {
+
+        }
+        if (currJob == null){
+            return false;
+        }
+        else{
+            return true;
+        }
+
+
     }
 };
 //Fixes authentication
