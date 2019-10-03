@@ -170,6 +170,7 @@ const schema = buildSchema(`
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
     updateJob(jobId: String, jobInput: JobInput): Job
+    updateJobSeeker(jobSeekerId: String, jobSeekerInput: JobSeekerInput): JobSeeker
   }
   
   schema {
@@ -903,6 +904,39 @@ const root = {
                 ...result._doc,
                 _id: result._doc._id.toString(),
                 company: getCompany.bind(this, result._doc.company),
+                education: getEducationList.bind(this, result._doc.education),
+                competence: getCompetenceList.bind(this, result._doc.competence)
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateJobSeeker: async (args) => {
+        return JobSeeker.findByIdAndUpdate(
+            args.jobSeekerId,
+            {
+                name: args.jobSeekerInput.name,
+                phone: args.jobSeekerInput.phone,
+                company: args.jobSeekerInput.company,
+                education: args.jobSeekerInput.education,
+                competence: args.jobSeekerInput.competence,
+                location: args.jobSeekerInput.location,
+                typeofwork: args.jobSeekerInput.typeofwork,
+                salary: args.jobSeekerInput.salary,
+                education_p: args.jobSeekerInput.education_p,
+                competence_p: args.jobSeekerInput.competence_p,
+                location_p: args.jobSeekerInput.location_p,
+                typeofwork_p: args.jobSeekerInput.typeofwork_p,
+                salary_p: args.jobSeekerInput.salary_p
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
                 education: getEducationList.bind(this, result._doc.education),
                 competence: getCompetenceList.bind(this, result._doc.competence)
             };
