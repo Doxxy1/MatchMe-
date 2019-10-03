@@ -169,6 +169,7 @@ const schema = buildSchema(`
     acceptJob(acceptInput: AcceptInput): String
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
+    updateJob(jobId: String, jobInput: JobInput): Job
   }
   
   schema {
@@ -880,6 +881,35 @@ const root = {
         }
 
 
+    },
+    updateJob: async (args) => {
+        return Job.findByIdAndUpdate(
+            args.jobId,
+            {
+                name: args.jobInput.name,
+                company: args.jobInput.company,
+                education: args.jobInput.education,
+                competence: args.jobInput.competence,
+                location: args.jobInput.location,
+                typeofwork: args.jobInput.typeofwork,
+                salary: args.jobInput.salary,
+                description: args.jobInput.description
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
+                company: getCompany.bind(this, result._doc.company),
+                education: getEducationList.bind(this, result._doc.education),
+                competence: getCompetenceList.bind(this, result._doc.competence)
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
     }
 };
 //Fixes authentication
