@@ -131,6 +131,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     email: String!
+    logoUrl: String
   }
   
   input EducationInput {
@@ -171,6 +172,7 @@ const schema = buildSchema(`
     deleteJob(jobId: String): Boolean
     updateJob(jobId: String, jobInput: JobInput): Job
     updateJobSeeker(jobSeekerId: String, jobSeekerInput: JobSeekerInput): JobSeeker
+    updateCompany(companyUserId: String, companyInput: CompanyInput): Company
   }
   
   schema {
@@ -678,7 +680,8 @@ const root = {
             const company = new Company({
                     name: args.companyInput.name,
                     phone: args.companyInput.phone,
-                    email: thisEmail
+                    email: thisEmail,
+                    logoUrl: args.companyInput.logoUrl
                 }
             );
             newCompany = company;
@@ -939,6 +942,33 @@ const root = {
                 _id: result._doc._id.toString(),
                 education: getEducationList.bind(this, result._doc.education),
                 competence: getCompetenceList.bind(this, result._doc.competence)
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateCompany: async (args) => {
+        try {
+            currUser = await User.findById(args.companyUserId);
+        } catch (err) {
+            throw err;
+        }
+        return Company.findByIdAndUpdate(
+            currUser.company,
+            {
+                name: args.companyInput.name,
+                phone: args.companyInput.phone,
+                email: args.companyInput.email,
+                logoUrl: args.companyInput.logoUrl,
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString()
             };
         }).catch(err => {
             console.log(err);
