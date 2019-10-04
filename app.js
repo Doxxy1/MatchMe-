@@ -483,7 +483,7 @@ const root = {
 
                 for (var j=0;j < currentJob.competence.length; j++){
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
-                    jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
+                    jobCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
                 var match = algorithm.match(jobEducation, jobSeekerEducation,
                     jobCompetence, jobSeekerCompetence,
