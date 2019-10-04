@@ -22,12 +22,12 @@ const locationMatch = function(applicatianlocation,joblocation)
                     var destination = distances.destination_addresses[j];
                     if (distances.rows[0].elements[j].status == 'OK') {
                         var distance = distances.rows[i].elements[j].distance.text;
-                      //  console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
+                       console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
                         if(origin == destination)
                         {
-                            locationScore  = locationScore + 1;
+                            locationScore  =  1;
                             
-                            console.log("Good match")
+                            console.log("Good match" + locationScore)
                         }
                         else if(distance <=20) 
                         {
