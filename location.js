@@ -22,7 +22,10 @@ const getDistance = (origins, destinations) => {
                         if (distances.rows[0].elements[j].status == 'OK')
                          {
                             var distanceS = distances.rows[i].elements[j].distance.text;
-                            var distance = parseInt(distanceS, 10);
+                            distanceS = distanceS.replace("km",'')
+                            distanceS = distanceS.replace(",",'')
+
+                            var distance = parseInt(distanceS);
                             console.log("Test 2")
                             if(origin == destination)
                             {
