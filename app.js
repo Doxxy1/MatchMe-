@@ -567,7 +567,8 @@ const root = {
         });
     },
     checkUser: (args) => {
-        return User.findOne({email : args.email ,password : args.password}).then(users => {
+        const lowercaseEmail = args.email.toLowerCase();
+        return User.findOne({email : lowercaseEmail ,password : args.password}).then(users => {
             return {
                 ...users._doc,
                 _id: users._doc._id.toString(),
@@ -580,7 +581,7 @@ const root = {
         });
     },createJobSeeker: async (args) => {
         var newjobSeeker = null;
-        const thisEmail = args.userInput.email;
+        const thisEmail = args.userInput.email.toLowerCase();
         const password = args.userInput.password;
         try{
             const user = await User.find({email : thisEmail})
@@ -665,7 +666,7 @@ const root = {
     createCompany: async (args) => {
         var newCompany = null;
         const password = args.userInput.password;
-        const thisEmail = args.companyInput.email;
+        const thisEmail = args.companyInput.email.toLowerCase();
         try{
             const user = await User.find({email: thisEmail})
             console.log("user:" + user)
