@@ -404,7 +404,7 @@ const root = {
                     userCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
 
-                var match = algorithm.match(jobEducation, userEducation,
+                var match = await algorithm.match(jobEducation, userEducation,
                     jobCompetence, userCompetence,
                     currentJobSeeker.location, job.location,
                     currentJobSeeker.typeofwork, job.typeofwork,
@@ -485,7 +485,7 @@ const root = {
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
-                var match = algorithm.match(jobEducation, jobSeekerEducation,
+                var match = await algorithm.match(jobEducation, jobSeekerEducation,
                     jobCompetence, jobSeekerCompetence,
                     currentJob.location, jobSeeker.location,
                     currentJob.typeofwork, jobSeeker.typeofwork,
