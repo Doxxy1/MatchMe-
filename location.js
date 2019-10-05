@@ -1,14 +1,16 @@
 const locationMatch = function(applicatianlocation,joblocation)
 {
     var locationScore = 0;
-    //Location Score 
+    console.log("I was called")
     var distance = require('google-distance-matrix');
     var origins = [joblocation];
     var destinations = [applicatianlocation];
-     
     distance.key('AIzaSyAvEJ0_IbB0kgEJvbKIsHZuzVTNO3QMTFo');
-     
+    console.log("I was called2")
+
     distance.matrix(origins, destinations, function (err, distances) {
+        console.log("I was called3")
+
         if (err) {
             return 0;
         }
@@ -20,41 +22,50 @@ const locationMatch = function(applicatianlocation,joblocation)
                 for (var j = 0; j < destinations.length; j++) {
                     var origin = distances.origin_addresses[i];
                     var destination = distances.destination_addresses[j];
-                    if (distances.rows[0].elements[j].status == 'OK') {
-                        var distance = distances.rows[i].elements[j].distance.text;
-                       console.log('Distance from ' + origin + ' to ' + destination + ' is ' + distance);
+                    if (distances.rows[0].elements[j].status == 'OK')
+                     {
+                        var distanceS = distances.rows[i].elements[j].distance.text;
+                        var distance = parseInt(distanceS, 10);
+                        console.log("Test 2")
                         if(origin == destination)
                         {
-                            locationScore  =  1;
+                           var locationScore  =  1;
                             
                             console.log("Good match" + locationScore)
+                            return locationScore;
+
                         }
                         else if(distance <=20) 
                         {
                             console.log("<20")
 
-                            locationScore  = locationScore + 1;
+                            var locationScore  = locationScore + 1;
+                            return locationScore;
                         }
                         else if(distance <=30)
                         {
                             console.log("<30")
 
-                            locationScore  = locationScore + .8;
+                          var   locationScore  = locationScore + .8;
+                            return locationScore;
 
                         }
                         else if(distance <=50)
                         {
-                            locationScore  = locationScore + .6;
+                          var   locationScore  = locationScore + .6;
+                            return locationScore;
 
                         }
                         else if(distance <=70)
                         {
-                            locationScore  = locationScore + .4;
+                           var locationScore  = locationScore + .4;
+                            return locationScore;
 
                         }
                         else if(distance >70)
                         {
-                            locationScore  = locationScore + 0;
+                            var locationScore  =  0;
+                            return locationScore;
 
                         }
 
@@ -66,9 +77,9 @@ const locationMatch = function(applicatianlocation,joblocation)
             
         }
 
-    });
-
-    return locationScore;
+    })
+  
+return locationScore;
 }
 
 
