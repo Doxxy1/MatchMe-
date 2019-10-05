@@ -171,7 +171,7 @@ const schema = buildSchema(`
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
     updateJob(jobId: String, jobInput: JobInput): Job
-    updateJobSeeker(jobSeekerId: String, jobSeekerInput: JobSeekerInput): JobSeeker
+    updateJobSeeker(jobSeekerUserId: String, jobSeekerInput: JobSeekerInput): JobSeeker
     updateCompany(companyUserId: String, companyInput: CompanyInput): Company
   }
   
@@ -916,8 +916,13 @@ const root = {
         });
     },
     updateJobSeeker: async (args) => {
+        try {
+            currUser = await User.findById(args.jobSeekerUserId);
+        } catch (err) {
+            throw err;
+        }
         return JobSeeker.findByIdAndUpdate(
-            args.jobSeekerId,
+            currUser.jobSeeker,
             {
                 name: args.jobSeekerInput.name,
                 phone: args.jobSeekerInput.phone,
