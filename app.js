@@ -672,7 +672,7 @@ const root = {
     createCompany: async (args) => {
         var newCompany = null;
         const password = args.userInput.password;
-        const thisEmail = args.companyInput.email.toLowerCase();
+        const thisEmail = args.userInput.email.toLowerCase();
         try{
             const user = await User.find({email: thisEmail})
             console.log("user:" + user)
@@ -687,7 +687,7 @@ const root = {
             const company = new Company({
                     name: args.companyInput.name,
                     phone: args.companyInput.phone,
-                    email: thisEmail,
+                    email: args.companyInput.email,
                     logoUrl: args.companyInput.logoUrl
                 }
             );
@@ -701,7 +701,7 @@ const root = {
         }
         try {
             const user = new User({
-                    email: newCompany.email,
+                    email: thisEmail,
                     company: newCompany._id,
                     password: password,
                     jobSeeker: null,
