@@ -663,7 +663,10 @@ const root = {
         );
         return job.save().then(result => {
             console.log(result);
-            return {...result._doc};
+            return {
+                ...result._doc,
+                company: getCompany.bind(this, result._doc.company)
+            };
         }).catch(err => {
             console.log(err);
             throw err;
