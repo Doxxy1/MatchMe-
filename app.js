@@ -713,7 +713,7 @@ const root = {
                 console.log(result);
                 return {
                     ...result._doc,
-                    company: getCompany.bind(this, users._doc.company)
+                    company: getCompany.bind(this, result._doc.company)
                 };
             }).catch(err => {
                 console.log(err);
