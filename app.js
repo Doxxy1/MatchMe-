@@ -403,36 +403,37 @@ const root = {
                     const newCompetence = await Competence.findById(currentJobSeeker.competence[j]);
                     userCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
-
-                var match = await algorithm.match(jobEducation, userEducation,
-                    jobCompetence, userCompetence,
-                    currentJobSeeker.location, job.location,
-                    currentJobSeeker.typeofwork, job.typeofwork,
-                    currentJobSeeker.salary,job.salary,
-                    currentJobSeeker.education_p,
-                    currentJobSeeker.competence_p,
-                    currentJobSeeker.location_p,
-                    currentJobSeeker.typeofwork_p,
-                    currentJobSeeker.salary_p);
-                matches.push({
-                    score: match,
-                    user: {
-                        _id: currentUser._id,
-                        email: currentUser.email,
-                        company: null,
-                        jobSeeker: {
-                            _id: currentJobSeeker.id,
-                            name: currentJobSeeker.name,
-                            phone: currentJobSeeker.phone,
-                            education: userEducation,
-                            competence: userCompetence,
-                            location: currentJobSeeker.location,
-                            typeofwork: currentJobSeeker.typeofwork,
-                            salary: currentJobSeeker.salary
-                        },
-                        isCompany: currentUser.isCompany
-                    }
-                });
+                if (job.completeJobSeekerMatch.includes(currentUser._id) === false) {
+                    var match = await algorithm.match(jobEducation, userEducation,
+                        jobCompetence, userCompetence,
+                        currentJobSeeker.location, job.location,
+                        currentJobSeeker.typeofwork, job.typeofwork,
+                        currentJobSeeker.salary, job.salary,
+                        currentJobSeeker.education_p,
+                        currentJobSeeker.competence_p,
+                        currentJobSeeker.location_p,
+                        currentJobSeeker.typeofwork_p,
+                        currentJobSeeker.salary_p);
+                    matches.push({
+                        score: match,
+                        user: {
+                            _id: currentUser._id,
+                            email: currentUser.email,
+                            company: null,
+                            jobSeeker: {
+                                _id: currentJobSeeker.id,
+                                name: currentJobSeeker.name,
+                                phone: currentJobSeeker.phone,
+                                education: userEducation,
+                                competence: userCompetence,
+                                location: currentJobSeeker.location,
+                                typeofwork: currentJobSeeker.typeofwork,
+                                salary: currentJobSeeker.salary
+                            },
+                            isCompany: currentUser.isCompany
+                        }
+                    });
+                }
             }
 
         } catch (err) {
@@ -485,37 +486,42 @@ const root = {
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
                     jobCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
-                var match = await algorithm.match(jobEducation, jobSeekerEducation,
-                    jobCompetence, jobSeekerCompetence,
-                    currentJob.location, jobSeeker.location,
-                    currentJob.typeofwork, jobSeeker.typeofwork,
-                    currentJob.salary,jobSeeker.salary,
-                    jobSeeker.education_p,
-                    jobSeeker.competence_p,
-                    jobSeeker.location_p,
-                    jobSeeker.typeofwork_p,
-                    jobSeeker.salary_p);
-                matches.push({
-                    score: match,
-                    job: {
-                        _id: currentJob._id,
-                        name: currentJob.name,
-                        company: {
-                            _id: currentCompany.id,
-                            name: currentCompany.name,
-                            phone: currentCompany.phone,
-                            email: currentCompany.email,
-                            logoUrl: currentCompany.logoUrl
+                if (currentJob.completeJobSeekerMatch.includes(args.jobSeekerUserId) === false) {
+                    var match = await algorithm.match(jobEducation, jobSeekerEducation,
+                        jobCompetence, jobSeekerCompetence,
+                        currentJob.location, jobSeeker.location,
+                        currentJob.typeofwork, jobSeeker.typeofwork,
+                        currentJob.salary, jobSeeker.salary,
+                        jobSeeker.education_p,
+                        jobSeeker.competence_p,
+                        jobSeeker.location_p,
+                        jobSeeker.typeofwork_p,
+                        jobSeeker.salary_p);
+                    matches.push({
+                        score: match,
+                        job: {
+                            _id: currentJob._id,
+                            name: currentJob.name,
+                            company: {
+                                _id: currentCompany.id,
+                                name: currentCompany.name,
+                                phone: currentCompany.phone,
+                                email: currentCompany.email,
+                                logoUrl: currentCompany.logoUrl
 
-                        },
-                        location: currentJob.location,
-                        typeofwork: currentJob.typeofwork,
-                        salary: currentJob.salary,
-                        education: jobEducation,
-                        competence: jobCompetence,
-                        description: currentJob.description
-                    }
-                });
+                            },
+                            location: currentJob.location,
+                            typeofwork: currentJob.typeofwork,
+                            salary: currentJob.salary,
+                            education: jobEducation,
+                            competence: jobCompetence,
+                            description: currentJob.description
+                        }
+                    });
+                }
+                else {
+
+                }
             }
 
         } catch (err) {
