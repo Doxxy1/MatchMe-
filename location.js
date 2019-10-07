@@ -72,7 +72,7 @@ const getDistance = (origins, destinations) => {
                         } else {
 
                             console.log(destination + ' is not reachable by land from ' + origin);
-                            resolve(locationScore);
+                            resolve(0);
 
                         }
                     }
