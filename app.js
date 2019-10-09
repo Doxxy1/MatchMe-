@@ -131,6 +131,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     email: String!
+    logoUrl: String
   }
   
   input EducationInput {
@@ -169,6 +170,9 @@ const schema = buildSchema(`
     acceptJob(acceptInput: AcceptInput): String
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
+    updateJob(jobId: String, jobInput: JobInput): Job
+    updateJobSeeker(jobSeekerUserId: String, jobSeekerInput: JobSeekerInput): JobSeeker
+    updateCompany(companyUserId: String, companyInput: CompanyInput): Company
   }
   
   schema {
@@ -399,31 +403,37 @@ const root = {
                     const newCompetence = await Competence.findById(currentJobSeeker.competence[j]);
                     userCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
-
-                var match = algorithm.match(jobEducation, userEducation,
-                    jobCompetence, userCompetence,
-                    currentJobSeeker.location, job.location,
-                    currentJobSeeker.typeofwork, job.typeofwork,
-                    currentJobSeeker.salary,job.salary);
-                matches.push({
-                    score: match,
-                    user: {
-                        _id: currentUser._id,
-                        email: currentUser.email,
-                        company: null,
-                        jobSeeker: {
-                            _id: currentJobSeeker.id,
-                            name: currentJobSeeker.name,
-                            phone: currentJobSeeker.phone,
-                            education: userEducation,
-                            competence: userCompetence,
-                            location: currentJobSeeker.location,
-                            typeofwork: currentJobSeeker.typeofwork,
-                            salary: currentJobSeeker.salary
-                        },
-                        isCompany: currentUser.isCompany
-                    }
-                });
+                if (job.completeJobSeekerMatch.includes(currentUser._id) === false) {
+                    var match = await algorithm.match(jobEducation, userEducation,
+                        jobCompetence, userCompetence,
+                        currentJobSeeker.location, job.location,
+                        currentJobSeeker.typeofwork, job.typeofwork,
+                        currentJobSeeker.salary, job.salary,
+                        currentJobSeeker.education_p,
+                        currentJobSeeker.competence_p,
+                        currentJobSeeker.location_p,
+                        currentJobSeeker.typeofwork_p,
+                        currentJobSeeker.salary_p);
+                    matches.push({
+                        score: match,
+                        user: {
+                            _id: currentUser._id,
+                            email: currentUser.email,
+                            company: null,
+                            jobSeeker: {
+                                _id: currentJobSeeker.id,
+                                name: currentJobSeeker.name,
+                                phone: currentJobSeeker.phone,
+                                education: userEducation,
+                                competence: userCompetence,
+                                location: currentJobSeeker.location,
+                                typeofwork: currentJobSeeker.typeofwork,
+                                salary: currentJobSeeker.salary
+                            },
+                            isCompany: currentUser.isCompany
+                        }
+                    });
+                }
             }
 
         } catch (err) {
@@ -474,39 +484,44 @@ const root = {
 
                 for (var j=0;j < currentJob.competence.length; j++){
                     const newCompetence= await Competence.findById(currentJob.competence[j]);
-                    jobCompetence.push({_id: newCompetence._id, skill: newCompetence.sklill, level: newCompetence.level});
+                    jobCompetence.push({_id: newCompetence._id, skill: newCompetence.skill, level: newCompetence.level});
                 }
-                var match = algorithm.match(jobEducation, jobSeekerEducation,
-                    jobCompetence, jobSeekerCompetence,
-                    currentJob.location, jobSeeker.location,
-                    currentJob.typeofwork, jobSeeker.typeofwork,
-                    currentJob.salary,jobSeeker.salary,
-                    jobSeeker.education_p,
-                    jobSeeker.competence_p,
-                    jobSeeker.location_p,
-                    jobSeeker.typeofwork_p,
-                    jobSeeker.salary_p);
-                matches.push({
-                    score: match,
-                    job: {
-                        _id: currentJob._id,
-                        name: currentJob.name,
-                        company: {
-                            _id: currentCompany.id,
-                            name: currentCompany.name,
-                            phone: currentCompany.phone,
-                            email: currentCompany.email,
-                            logoUrl: currentCompany.logoUrl
+                if (currentJob.completeJobSeekerMatch.includes(args.jobSeekerUserId) === false) {
+                    var match = await algorithm.match(jobEducation, jobSeekerEducation,
+                        jobCompetence, jobSeekerCompetence,
+                        currentJob.location, jobSeeker.location,
+                        currentJob.typeofwork, jobSeeker.typeofwork,
+                        currentJob.salary, jobSeeker.salary,
+                        jobSeeker.education_p,
+                        jobSeeker.competence_p,
+                        jobSeeker.location_p,
+                        jobSeeker.typeofwork_p,
+                        jobSeeker.salary_p);
+                    matches.push({
+                        score: match,
+                        job: {
+                            _id: currentJob._id,
+                            name: currentJob.name,
+                            company: {
+                                _id: currentCompany.id,
+                                name: currentCompany.name,
+                                phone: currentCompany.phone,
+                                email: currentCompany.email,
+                                logoUrl: currentCompany.logoUrl
 
-                        },
-                        location: currentJob.location,
-                        typeofwork: currentJob.typeofwork,
-                        salary: currentJob.salary,
-                        education: jobEducation,
-                        competence: jobCompetence,
-                        description: currentJob.description
-                    }
-                });
+                            },
+                            location: currentJob.location,
+                            typeofwork: currentJob.typeofwork,
+                            salary: currentJob.salary,
+                            education: jobEducation,
+                            competence: jobCompetence,
+                            description: currentJob.description
+                        }
+                    });
+                }
+                else {
+
+                }
             }
 
         } catch (err) {
@@ -558,7 +573,8 @@ const root = {
         });
     },
     checkUser: (args) => {
-        return User.findOne({email : args.email ,password : args.password}).then(users => {
+        const lowercaseEmail = args.email.toLowerCase();
+        return User.findOne({email : lowercaseEmail ,password : args.password}).then(users => {
             return {
                 ...users._doc,
                 _id: users._doc._id.toString(),
@@ -571,7 +587,7 @@ const root = {
         });
     },createJobSeeker: async (args) => {
         var newjobSeeker = null;
-        const thisEmail = args.userInput.email;
+        const thisEmail = args.userInput.email.toLowerCase();
         const password = args.userInput.password;
         try{
             const user = await User.find({email : thisEmail})
@@ -647,7 +663,10 @@ const root = {
         );
         return job.save().then(result => {
             console.log(result);
-            return {...result._doc};
+            return {
+                ...result._doc,
+                company: getCompany.bind(this, result._doc.company)
+            };
         }).catch(err => {
             console.log(err);
             throw err;
@@ -656,7 +675,7 @@ const root = {
     createCompany: async (args) => {
         var newCompany = null;
         const password = args.userInput.password;
-        const thisEmail = args.companyInput.email;
+        const thisEmail = args.userInput.email.toLowerCase();
         try{
             const user = await User.find({email: thisEmail})
             console.log("user:" + user)
@@ -671,7 +690,8 @@ const root = {
             const company = new Company({
                     name: args.companyInput.name,
                     phone: args.companyInput.phone,
-                    email: thisEmail
+                    email: args.companyInput.email,
+                    logoUrl: args.companyInput.logoUrl
                 }
             );
             newCompany = company;
@@ -684,7 +704,7 @@ const root = {
         }
         try {
             const user = new User({
-                    email: newCompany.email,
+                    email: thisEmail,
                     company: newCompany._id,
                     password: password,
                     jobSeeker: null,
@@ -696,7 +716,7 @@ const root = {
                 console.log(result);
                 return {
                     ...result._doc,
-                    company: getCompany.bind(this, users._doc.company)
+                    company: getCompany.bind(this, result._doc.company)
                 };
             }).catch(err => {
                 console.log(err);
@@ -875,6 +895,100 @@ const root = {
         }
 
 
+    },
+    updateJob: async (args) => {
+        return Job.findByIdAndUpdate(
+            args.jobId,
+            {
+                name: args.jobInput.name,
+                company: args.jobInput.company,
+                education: args.jobInput.education,
+                competence: args.jobInput.competence,
+                location: args.jobInput.location,
+                typeofwork: args.jobInput.typeofwork,
+                salary: args.jobInput.salary,
+                description: args.jobInput.description
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
+                company: getCompany.bind(this, result._doc.company),
+                education: getEducationList.bind(this, result._doc.education),
+                competence: getCompetenceList.bind(this, result._doc.competence)
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateJobSeeker: async (args) => {
+        try {
+            currUser = await User.findById(args.jobSeekerUserId);
+        } catch (err) {
+            throw err;
+        }
+        return JobSeeker.findByIdAndUpdate(
+            currUser.jobSeeker,
+            {
+                name: args.jobSeekerInput.name,
+                phone: args.jobSeekerInput.phone,
+                company: args.jobSeekerInput.company,
+                education: args.jobSeekerInput.education,
+                competence: args.jobSeekerInput.competence,
+                location: args.jobSeekerInput.location,
+                typeofwork: args.jobSeekerInput.typeofwork,
+                salary: args.jobSeekerInput.salary,
+                education_p: args.jobSeekerInput.education_p,
+                competence_p: args.jobSeekerInput.competence_p,
+                location_p: args.jobSeekerInput.location_p,
+                typeofwork_p: args.jobSeekerInput.typeofwork_p,
+                salary_p: args.jobSeekerInput.salary_p
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
+                education: getEducationList.bind(this, result._doc.education),
+                competence: getCompetenceList.bind(this, result._doc.competence)
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateCompany: async (args) => {
+        try {
+            currUser = await User.findById(args.companyUserId);
+        } catch (err) {
+            throw err;
+        }
+        return Company.findByIdAndUpdate(
+            currUser.company,
+            {
+                name: args.companyInput.name,
+                phone: args.companyInput.phone,
+                email: args.companyInput.email,
+                logoUrl: args.companyInput.logoUrl,
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString()
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
     }
 };
 //Fixes authentication
