@@ -33,6 +33,7 @@ const schema = buildSchema(`
     company: Company
     jobSeeker: JobSeeker
     isCompany: Boolean!
+    isAdmin: Boolean!
   }
   
   type JobSeeker {
@@ -384,7 +385,7 @@ const root = {
         }
 
         try {
-            const users = await User.find({isCompany: false});
+            const users = await User.find({isCompany: false, isAdmin: false});
 
 
             for (var i=0;i < users.length; i++)
@@ -430,7 +431,8 @@ const root = {
                                 typeofwork: currentJobSeeker.typeofwork,
                                 salary: currentJobSeeker.salary
                             },
-                            isCompany: currentUser.isCompany
+                            isCompany: currentUser.isCompany,
+                            isAdmin: currentUser.isAdmin
                         }
                     });
                 }
@@ -530,7 +532,7 @@ const root = {
         return matches;
     },
     users: () => {
-        return User.find().then(users => {
+        return User.find({isAdmin: false}).then(users => {
             return users.map(users => {
                 return {
                     ...users._doc,
@@ -631,7 +633,9 @@ const root = {
                     password: password,
                     company: null,
                     jobSeeker: newjobSeeker._id,
-                    isCompany: false
+                    isCompany: false,
+                    isAdmin: false
+
 
                 }
             );
@@ -708,7 +712,8 @@ const root = {
                     company: newCompany._id,
                     password: password,
                     jobSeeker: null,
-                    isCompany: true
+                    isCompany: true,
+                    isAdmin: false
 
                 }
             );
