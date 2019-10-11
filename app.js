@@ -34,6 +34,7 @@ const schema = buildSchema(`
     jobSeeker: JobSeeker
     isCompany: Boolean!
     isAdmin: Boolean!
+    profilePictureUrl: String!
   }
   
   type JobSeeker {
@@ -73,7 +74,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     email: String!
-    logoUrl: String
+    logoUrl: String!
   }
   
   type Education {
@@ -115,6 +116,7 @@ const schema = buildSchema(`
   input UserInput {
     email: String
     password: String!
+    profilePictureUrl: String!
   }
   
   input JobInput {
@@ -434,7 +436,8 @@ const root = {
                                 salary: currentJobSeeker.salary
                             },
                             isCompany: currentUser.isCompany,
-                            isAdmin: currentUser.isAdmin
+                            isAdmin: currentUser.isAdmin,
+                            profilePictureUrl: currentUser.profilePictureUrl
                         }
                     });
                 }
@@ -636,7 +639,8 @@ const root = {
                     company: null,
                     jobSeeker: newjobSeeker._id,
                     isCompany: false,
-                    isAdmin: false
+                    isAdmin: false,
+                    profilePictureUrl: args.userInput.profilePictureUrl
 
 
                 }
@@ -715,7 +719,8 @@ const root = {
                     password: password,
                     jobSeeker: null,
                     isCompany: true,
-                    isAdmin: false
+                    isAdmin: false,
+                    profilePictureUrl: args.userInput.profilePictureUrl
 
                 }
             );
@@ -1086,7 +1091,8 @@ const root = {
             args.userId,
             {
                 email: args.userInput.email,
-                password: args.userInput.password
+                password: args.userInput.password,
+                profilePictureUrl: args.userInput.profilePictureUrl
             },
             {
                 new: true
