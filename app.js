@@ -171,6 +171,7 @@ const schema = buildSchema(`
     acceptJob(acceptInput: AcceptInput): String
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
+    deleteUser(userId: String): Boolean
     updateJob(jobId: String, jobInput: JobInput): Job
     updateJobSeeker(jobSeekerUserId: String, jobSeekerInput: JobSeekerInput): JobSeeker
     updateCompany(companyUserId: String, companyInput: CompanyInput): Company
@@ -897,6 +898,90 @@ const root = {
         }
         else{
             return true;
+        }
+
+
+    },
+    deleteUser: async (args) => {
+        try {
+            currUser = await User.findById(args.userId);
+            if (currUser.isAdmin === false){
+                //Job Seeker
+                if (currUser.isCompany === false){
+                    const jobs = await Job.find({});
+
+                    for (var i=0;i < jobs.length; i++) {
+
+                        //Check if user has shown interest in a job and removes the user from the array if true
+                        if (jobs[i].jobSeekerInterest.includes(args.userId)) {
+                            //Remove user id from jobSeekerInterest
+                            if (jobs[i].jobSeekerInterest.length !== 1) {
+                                for (var j = 0; j < jobs[j].jobSeekerInterest.length; j++) {
+                                    if (jobs[i].jobSeekerInterest[j] === args.userId) {
+                                        jobs[i].jobSeekerInterest.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].jobSeekerInterest = [];
+                            }
+                        }
+
+                        //Check if company has shown interest in the user and removes the user from the array if true
+                        if (jobs[i].companyInterest.includes(args.userId)) {
+                            //Remove user id from companyInterest
+                            if (jobs[i].companyInterest.length !== 1) {
+                                for (var j = 0; j < jobs[j].companyInterest.length; j++) {
+                                    if (jobs[i].companyInterest[j] === args.userId) {
+                                        jobs[i].companyInterest.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].companyInterest = [];
+                            }
+                        }
+
+                        //Check if user is in a completeMatch and removes if true
+                        if (jobs[i].completeJobSeekerMatch.includes(args.userId)) {
+                            //Remove user id from completeJobSeekerMatch
+                            if (jobs[i].completeJobSeekerMatch.length !== 1) {
+                                for (var j = 0; j < jobs[j].completeJobSeekerMatch.length; j++) {
+                                    if (jobs[i].completeJobSeekerMatch[j] === args.userId) {
+                                        jobs[i].completeJobSeekerMatch.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].completeJobSeekerMatch = [];
+                            }
+                        }
+
+                        //Update Job
+                        var updatedJob = await Job.findByIdAndUpdate(jobs[i]._id, {jobSeekerInterest: jobs[i].jobSeekerInterest, companyInterest: jobs[i].companyInterest, completeJobSeekerMatch: jobs[i].completeJobSeekerMatch});
+
+                    }
+
+                    //Delete jobSeeker
+                    var deletedJobSeeker = await JobSeeker.findByIdAndRemove(currUser.jobSeeker);
+                    //Delete user
+                    var deletedUser = await User.findByIdAndRemove(args.userId);
+                    //Return true to indicate deletion
+                    return true;
+                }
+                //Company
+                else{
+                    //Delete user
+                    var deletedUser = await User.findByIdAndRemove(args.userId);
+                    return true;
+                }
+
+            }
+            //Admin
+            else{
+                //Cannot delete admin so return false
+                return false;
+            }
+        }
+        catch (err) {
+            return false;
         }
 
 
