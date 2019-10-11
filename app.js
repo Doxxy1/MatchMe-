@@ -175,6 +175,7 @@ const schema = buildSchema(`
     updateJob(jobId: String, jobInput: JobInput): Job
     updateJobSeeker(jobSeekerUserId: String, jobSeekerInput: JobSeekerInput): JobSeeker
     updateCompany(companyUserId: String, companyInput: CompanyInput): Company
+    updateUser(userId: String, userInput: UserInput): User
   }
   
   schema {
@@ -1074,6 +1075,28 @@ const root = {
             return {
                 ...result._doc,
                 _id: result._doc._id.toString()
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateUser: async (args) => {
+        return User.findByIdAndUpdate(
+            args.userId,
+            {
+                email: args.userInput.email,
+                password: args.userInput.password
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
+                company: getCompany.bind(this, result._doc.company),
+                jobSeeker: getJobSeeker.bind(this, result._doc.jobSeeker)
             };
         }).catch(err => {
             console.log(err);
