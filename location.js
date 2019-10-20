@@ -1,5 +1,6 @@
 const getDistance = (origins, destinations) => {
     return new Promise((resolve, reject) => {
+        var locationScore = 0;
         const distance = require('google-distance-matrix');
         distance.matrix(origins, destinations, (err, distances) => {
             console.log("I was called3")
@@ -29,7 +30,7 @@ const getDistance = (origins, destinations) => {
                             console.log("Test 2")
                             if(origin == destination)
                             {
-                               var locationScore  =  1;
+                                locationScore  =  1;
                                 
                                 console.log("Good match" + locationScore)
                                 resolve(locationScore);
@@ -39,32 +40,32 @@ const getDistance = (origins, destinations) => {
                             {
                                 console.log("<20")
     
-                                var locationScore  = locationScore + 1;
+                                 locationScore  = locationScore + 1;
                                 resolve(locationScore);
                             }
                             else if(distance <=30)
                             {
                                 console.log("<30")
     
-                              var   locationScore  = locationScore + .8;
+                                 locationScore  = locationScore + .8;
                                 resolve(locationScore);
     
                             }
                             else if(distance <=50)
                             {
-                              var   locationScore  = locationScore + .6;
+                                 locationScore  = locationScore + .6;
                                 resolve(locationScore);
     
                             }
                             else if(distance <=70)
                             {
-                               var locationScore  = locationScore + .4;
+                                locationScore  = locationScore + .4;
                                 resolve(locationScore);
     
                             }
                             else if(distance >70)
                             {
-                                var locationScore  =  0;
+                                 locationScore  =  0;
                                 resolve(locationScore);
     
                             }
@@ -90,7 +91,7 @@ const locationMatch = async function(applicatianlocation,joblocation)
     var distance = require('google-distance-matrix');
     var origins = [joblocation];
     var destinations = [applicatianlocation];
-    distance.key('AIzaSyAvEJ0_IbB0kgEJvbKIsHZuzVTNO3QMTFo');
+    distance.key('AIzaSyApIuKfj5zqOT1mRYvEAnBjesaSEYq2f40');
     console.log("I was called2")
 
     const locationScore = await getDistance(origins, destinations);

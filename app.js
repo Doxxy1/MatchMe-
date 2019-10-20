@@ -33,6 +33,8 @@ const schema = buildSchema(`
     company: Company
     jobSeeker: JobSeeker
     isCompany: Boolean!
+    isAdmin: Boolean!
+    profilePictureUrl: String!
   }
   
   type JobSeeker {
@@ -72,7 +74,7 @@ const schema = buildSchema(`
     name: String!
     phone: String!
     email: String!
-    logoUrl: String
+    logoUrl: String!
   }
   
   type Education {
@@ -114,6 +116,7 @@ const schema = buildSchema(`
   input UserInput {
     email: String
     password: String!
+    profilePictureUrl: String!
   }
   
   input JobInput {
@@ -170,9 +173,11 @@ const schema = buildSchema(`
     acceptJob(acceptInput: AcceptInput): String
     acceptJobSeeker(acceptInput: AcceptInput): String
     deleteJob(jobId: String): Boolean
+    deleteUser(userId: String): Boolean
     updateJob(jobId: String, jobInput: JobInput): Job
     updateJobSeeker(jobSeekerUserId: String, jobSeekerInput: JobSeekerInput): JobSeeker
     updateCompany(companyUserId: String, companyInput: CompanyInput): Company
+    updateUser(userId: String, userInput: UserInput): User
   }
   
   schema {
@@ -384,7 +389,7 @@ const root = {
         }
 
         try {
-            const users = await User.find({isCompany: false});
+            const users = await User.find({isCompany: false, isAdmin: false});
 
 
             for (var i=0;i < users.length; i++)
@@ -430,7 +435,9 @@ const root = {
                                 typeofwork: currentJobSeeker.typeofwork,
                                 salary: currentJobSeeker.salary
                             },
-                            isCompany: currentUser.isCompany
+                            isCompany: currentUser.isCompany,
+                            isAdmin: currentUser.isAdmin,
+                            profilePictureUrl: currentUser.profilePictureUrl
                         }
                     });
                 }
@@ -530,7 +537,7 @@ const root = {
         return matches;
     },
     users: () => {
-        return User.find().then(users => {
+        return User.find({isAdmin: false}).then(users => {
             return users.map(users => {
                 return {
                     ...users._doc,
@@ -631,7 +638,10 @@ const root = {
                     password: password,
                     company: null,
                     jobSeeker: newjobSeeker._id,
-                    isCompany: false
+                    isCompany: false,
+                    isAdmin: false,
+                    profilePictureUrl: args.userInput.profilePictureUrl
+
 
                 }
             );
@@ -708,7 +718,9 @@ const root = {
                     company: newCompany._id,
                     password: password,
                     jobSeeker: null,
-                    isCompany: true
+                    isCompany: true,
+                    isAdmin: false,
+                    profilePictureUrl: args.userInput.profilePictureUrl
 
                 }
             );
@@ -896,6 +908,90 @@ const root = {
 
 
     },
+    deleteUser: async (args) => {
+        try {
+            currUser = await User.findById(args.userId);
+            if (currUser.isAdmin === false){
+                //Job Seeker
+                if (currUser.isCompany === false){
+                    const jobs = await Job.find({});
+
+                    for (var i=0;i < jobs.length; i++) {
+
+                        //Check if user has shown interest in a job and removes the user from the array if true
+                        if (jobs[i].jobSeekerInterest.includes(args.userId)) {
+                            //Remove user id from jobSeekerInterest
+                            if (jobs[i].jobSeekerInterest.length !== 1) {
+                                for (var j = 0; j < jobs[j].jobSeekerInterest.length; j++) {
+                                    if (jobs[i].jobSeekerInterest[j] === args.userId) {
+                                        jobs[i].jobSeekerInterest.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].jobSeekerInterest = [];
+                            }
+                        }
+
+                        //Check if company has shown interest in the user and removes the user from the array if true
+                        if (jobs[i].companyInterest.includes(args.userId)) {
+                            //Remove user id from companyInterest
+                            if (jobs[i].companyInterest.length !== 1) {
+                                for (var j = 0; j < jobs[j].companyInterest.length; j++) {
+                                    if (jobs[i].companyInterest[j] === args.userId) {
+                                        jobs[i].companyInterest.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].companyInterest = [];
+                            }
+                        }
+
+                        //Check if user is in a completeMatch and removes if true
+                        if (jobs[i].completeJobSeekerMatch.includes(args.userId)) {
+                            //Remove user id from completeJobSeekerMatch
+                            if (jobs[i].completeJobSeekerMatch.length !== 1) {
+                                for (var j = 0; j < jobs[j].completeJobSeekerMatch.length; j++) {
+                                    if (jobs[i].completeJobSeekerMatch[j] === args.userId) {
+                                        jobs[i].completeJobSeekerMatch.splice(j, 1);
+                                    }
+                                }
+                            } else {
+                                jobs[i].completeJobSeekerMatch = [];
+                            }
+                        }
+
+                        //Update Job
+                        var updatedJob = await Job.findByIdAndUpdate(jobs[i]._id, {jobSeekerInterest: jobs[i].jobSeekerInterest, companyInterest: jobs[i].companyInterest, completeJobSeekerMatch: jobs[i].completeJobSeekerMatch});
+
+                    }
+
+                    //Delete jobSeeker
+                    var deletedJobSeeker = await JobSeeker.findByIdAndRemove(currUser.jobSeeker);
+                    //Delete user
+                    var deletedUser = await User.findByIdAndRemove(args.userId);
+                    //Return true to indicate deletion
+                    return true;
+                }
+                //Company
+                else{
+                    //Delete user
+                    var deletedUser = await User.findByIdAndRemove(args.userId);
+                    return true;
+                }
+
+            }
+            //Admin
+            else{
+                //Cannot delete admin so return false
+                return false;
+            }
+        }
+        catch (err) {
+            return false;
+        }
+
+
+    },
     updateJob: async (args) => {
         return Job.findByIdAndUpdate(
             args.jobId,
@@ -984,6 +1080,29 @@ const root = {
             return {
                 ...result._doc,
                 _id: result._doc._id.toString()
+            };
+        }).catch(err => {
+            console.log(err);
+            throw err;
+        });
+    },
+    updateUser: async (args) => {
+        return User.findByIdAndUpdate(
+            args.userId,
+            {
+                email: args.userInput.email,
+                password: args.userInput.password,
+                profilePictureUrl: args.userInput.profilePictureUrl
+            },
+            {
+                new: true
+            }).then(result => {
+            console.log(result);
+            return {
+                ...result._doc,
+                _id: result._doc._id.toString(),
+                company: getCompany.bind(this, result._doc.company),
+                jobSeeker: getJobSeeker.bind(this, result._doc.jobSeeker)
             };
         }).catch(err => {
             console.log(err);
