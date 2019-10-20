@@ -720,7 +720,7 @@ const root = {
                     jobSeeker: null,
                     isCompany: true,
                     isAdmin: false,
-                    profilePictureUrl: args.companyInput.profilePictureUrl
+                    profilePictureUrl: args.userInput.profilePictureUrl
 
                 }
             );
